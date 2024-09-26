@@ -92,7 +92,7 @@ def auto_reply_to_comments():
 
 def auto_reacts():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
-    script_name = 'auto_reacts.py'
+    script_name = 'auto-reacts.py'
     clone_and_run(repo_url, script_name)
 
 def auto_create_page():

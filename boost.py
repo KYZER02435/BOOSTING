@@ -100,7 +100,7 @@ def auto_create_page():
     clone_and_run(repo_url, script_name)
 
 def reset():
-    folder_name = "Aqua"
+    folder_name = "Test"
     file_names = ["toka.txt", "tokaid.txt", "tokp.txt", "tokpid.txt", "cok.txt", "cokid.txt"]
     
     if os.path.exists(folder_name):

@@ -1,4 +1,5 @@
 import os
+import shutil
 # Define color variables
 red = "\033[1;31m"    # Bold red
 c = "\033[1;96m"      # Cyan (for overview heading)
@@ -100,21 +101,18 @@ def auto_create_page():
     clone_and_run(repo_url, script_name)
 
 def reset():
-    folder_name = "Test"
-    file_names = ["toka.txt", "tokaid.txt", "tokp.txt", "tokpid.txt", "cok.txt", "cokid.txt"]
+    folder_path = '/sdcard/Test'
     
-    if os.path.exists(folder_name):
-        for root, dirs, files in os.walk(folder_name, topdown=False):
-            for name in files:
-                file_path = os.path.join(root, name)
-                os.remove(file_path)
-            for name in dirs:
-                dir_path = os.path.join(root, name)
-                os.rmdir(dir_path)
-        os.rmdir(folder_name)
-        print(f"{c}Successfully Reset.{r}")
+    # Check if the folder exists
+    if os.path.exists(folder_path):
+        try:
+            # Delete the folder and all its contents
+            shutil.rmtree(folder_path)
+            print(f"Successfully deleted the folder: {folder_path}")
+        except Exception as e:
+            print(f"Error while deleting the folder: {e}")
     else:
-        print(f"{red}Failed to reset.")
+        print(f"The folder {folder_path} does not exist.")
 
 if __name__ == "__main__":
     main_menu()

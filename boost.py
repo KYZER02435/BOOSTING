@@ -71,32 +71,32 @@ def main_menu():
         main_menu()
 
 def extract_account():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'extract-acc.py'
     clone_and_run(repo_url, script_name)
 
 def auto_facebook_followers():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto-follow.py'
     clone_and_run(repo_url, script_name)
 
 def auto_comments():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto_comment.py'
     clone_and_run(repo_url, script_name)
 
 def auto_reply_to_comments():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atrc.py'
     clone_and_run(repo_url, script_name)
 
 def auto_reacts():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto_reacts.py'
     clone_and_run(repo_url, script_name)
 
 def auto_create_page():
-    repo_url = 'https://github.com/KYZER02435/BOOST'
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atc_page.py'
     clone_and_run(repo_url, script_name)
 

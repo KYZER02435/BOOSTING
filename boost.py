@@ -44,6 +44,7 @@ def main_menu():
     print("[4] Auto Reply to Comments")
     print("[5] Auto Reacts")
     print("[6] Auto Create Page")
+    print("[7] Auto React Comment")
     print("[0] Reset")
     print("[E] Exit")
 
@@ -61,6 +62,8 @@ def main_menu():
         auto_reacts()
     elif choice == '6':
         auto_create_page()
+    elif choice == '7':
+        auto_react_comment()
     elif choice == '0':
         reset()
     elif choice == 'E':
@@ -98,6 +101,11 @@ def auto_reacts():
 def auto_create_page():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atc_page.py'
+    clone_and_run(repo_url, script_name)
+    
+def auto_react_comment():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'auto_react_comment.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

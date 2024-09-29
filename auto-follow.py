@@ -4,6 +4,19 @@ def get_ids_tokens(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file]
 
+def get_profile_id(profile_link, access_token):
+    # Check if it's a vanity URL or a numeric ID
+    if profile_link.isdigit():
+        return profile_link  # Already a numeric ID
+
+    url = f'https://graph.facebook.com/v19.0/{profile_link}'
+    params = {'access_token': access_token, 'fields': 'id'}
+    response = requests.get(url, params=params)
+    
+    if response.status_code == 200:
+        return response.json().get('id', 'Unknown ID')
+    return 'Unknown ID'
+
 def get_profile_username(profile_id, access_token):
     url = f'https://graph.facebook.com/v19.0/{profile_id}'
     params = {'access_token': access_token, 'fields': 'name'}
@@ -18,8 +31,9 @@ def follow_facebook_profile():
 
     profile_link = input('Enter the Facebook profile link: ')
     
-    profile_id = profile_link.split('/')[-1] if profile_link.endswith('/') else profile_link.split('/')[-1]
-
+    # Use the first token to resolve the profile link to an ID
+    profile_id = get_profile_id(profile_link.split('/')[-1], access_tokens[0])
+    
     # Ask the user how many followers they want to add
     num_followers = int(input('How many followers do you want to add? '))
     
@@ -56,7 +70,8 @@ def remove_facebook_follower():
 
     profile_link = input('Enter the Facebook profile link to remove: ')
     
-    profile_id = profile_link.split('/')[-1] if profile_link.endswith('/') else profile_link.split('/')[-1]
+    # Use the first token to resolve the profile link to an ID
+    profile_id = get_profile_id(profile_link.split('/')[-1], access_tokens[0])
 
     def remove_follower(profile_id, access_token):
         try:

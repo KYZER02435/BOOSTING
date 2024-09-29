@@ -105,7 +105,7 @@ def auto_create_page():
     
 def auto_react_comment():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
-    script_name = 'auto_react_comment.py'
+    script_name = 'auto-react-comment.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

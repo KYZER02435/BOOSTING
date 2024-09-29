@@ -7,7 +7,6 @@ def get_ids_tokens(file_path):
 
 def linktradio(post_link):
     try:
-        # Extract the post ID from the link
         post_id = post_link.split('/posts/')[1].split('/')[0]
         return post_id
     except IndexError:
@@ -57,14 +56,12 @@ def comment_on_facebook_post():
             response = requests.get(url, params=params)
             response.raise_for_status()
             comments = response.json().get('data', [])
-            print("Comments fetched:", comments)  # Debugging line
             
             for comment in comments:
                 if comment.get('from', {}).get('id') == user_id:
                     return True
-        except requests.exceptions.RequestException as error:
-            print(f"Error checking comments: {error}")
-        return False
+        except requests.exceptions.RequestException:
+            return False
 
     comments_count = 0
     user_count = len(user_ids)
@@ -82,14 +79,13 @@ def comment_on_facebook_post():
                     response = requests.post(url, params=params)
                     
                     if response.status_code == 200:
+                        print(f"Success: Commented on {post_id} with user ID {user_id}.")
                         comments_count += 1
-                        print(f"Success: commented on {post_id}")
                         if comments_count >= num_comments:
-                            print(f"Successfully commented {num_comments} times.")
                             return
                     else:
-                        print(f"Error {response.status_code}: {response.json()}")
-            except requests.exceptions.RequestException as error:
-                print(f"Failed to comment on {post_id}: {error}")
+                        print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
+            except requests.exceptions.RequestException:
+                print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
 
 comment_on_facebook_post()

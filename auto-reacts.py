@@ -79,13 +79,14 @@ def AutoReact():
         # Extract post ID from various Facebook URLs
         patterns = [
             r'/posts/(\w+)',          # Regular post
-            r'/videos/(\w+)',        # Video post
+            r'/videos/(\w+)',         # Video post
             r'/groups/(\d+)/permalink/(\d+)',  # Group permalink post
-            r'/reels/(\w+)',         # Reels
-            r'/live/(\w+)',          # Live videos
-            r'/photos/(\w+)',        # Photo posts
-            r'/permalink/(\w+)',     # Permalink posts
-            r'story_fbid=(\w+)'      # Story posts
+            r'/reels/(\w+)',          # Reels
+            r'/live/(\w+)',           # Live videos
+            r'/photos/(\w+)',         # Photo posts
+            r'/permalink/(\w+)',      # Permalink posts
+            r'story_fbid=(\w+)',      # Story posts
+            r'fbid=(\d+)'             # Photo post (new pattern for photo links)
         ]
         
         for pattern in patterns:
@@ -108,6 +109,7 @@ def AutoReact():
         print("1. A regular post")
         print("2. A group post")
         print("3. A video post")
+        print("4. A photo post")  # New option for photo post
         choice = input('Choose an option: ')
         return choice
 
@@ -124,6 +126,9 @@ def AutoReact():
         post_id = linktradio(post_link)
     elif choice == '3':
         post_link = input('Enter the Facebook video post link: ')
+        post_id = linktradio(post_link)
+    elif choice == '4':  # New handling for photo post
+        post_link = input('Enter the Facebook photo post link: ')
         post_id = linktradio(post_link)
     else:
         print('Invalid choice.')

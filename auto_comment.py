@@ -29,19 +29,20 @@ def comment_on_facebook_post():
         print("Could not extract post ID. Exiting.")
         return
 
+    comment_texts = []
     if comment_option == '1':
+        # Same comment for all
         comment_text = input('Enter the comment text (or leave blank for auto comment): ')
         if not comment_text:
             current_time = datetime.now().strftime("%I:%M %p")
             current_date = datetime.now().strftime("%Y-%m-%d")
             user_name = get_user_name()
             comment_text = f'Time:「{current_time}」「{current_date}」\n-「Auto comment by {user_name}」'
-        comment_texts = [comment_text] * num_comments
-        
+        comment_texts = [comment_text] * num_comments  # Same comment repeated
     elif comment_option == '2':
-        comment_texts = []
-        for _ in range(num_comments):
-            comment_text = input(f'Enter comment {_ + 1}: ')
+        # Different comments for each
+        for i in range(num_comments):
+            comment_text = input(f'Enter comment {i + 1}: ')
             if not comment_text:
                 current_time = datetime.now().strftime("%I:%M %p")
                 current_date = datetime.now().strftime("%Y-%m-%d")
@@ -63,29 +64,33 @@ def comment_on_facebook_post():
         except requests.exceptions.RequestException:
             return False
 
-    comments_count = 0
+    successful_comments = 0
+    current_comment_index = 0
     user_count = len(user_ids)
 
-    for i in range(num_comments):
-        for j in range(user_count):
-            user_id = user_ids[j]
-            access_token = access_tokens[j]
-            comment_text = comment_texts[i]
-            
-            try:
-                if not has_commented(post_id, access_token, user_id):
-                    url = f'https://graph.facebook.com/v19.0/{user_id}_{post_id}/comments'
-                    params = {'access_token': access_token, 'message': comment_text}
-                    response = requests.post(url, params=params)
-                    
-                    if response.status_code == 200:
-                        print(f"Success: Commented on {post_id} with user ID {user_id}.")
-                        comments_count += 1
-                        if comments_count >= num_comments:
-                            return
-                    else:
-                        print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
-            except requests.exceptions.RequestException:
-                print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
+    while successful_comments < num_comments:
+        user_id = user_ids[current_comment_index % user_count]  # Cycle through users if needed
+        access_token = access_tokens[current_comment_index % user_count]
+        comment_text = comment_texts[current_comment_index % len(comment_texts)]  # Cycle through comments
+        
+        try:
+            if not has_commented(post_id, access_token, user_id):
+                url = f'https://graph.facebook.com/v19.0/{user_id}_{post_id}/comments'
+                params = {'access_token': access_token, 'message': comment_text}
+                response = requests.post(url, params=params)
+                
+                if response.status_code == 200:
+                    print(f"Success: Commented on {post_id} with user ID {user_id}.")
+                    successful_comments += 1  # Increment only on success
+                else:
+                    print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
+            else:
+                print(f"User {user_id} has already commented on this post.")
+        except requests.exceptions.RequestException:
+            print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
+        
+        current_comment_index += 1  # Move to the next comment/user
+
+    print(f"Total successful comments: {successful_comments}")
 
 comment_on_facebook_post()

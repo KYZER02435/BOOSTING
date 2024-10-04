@@ -66,7 +66,7 @@ def main_menu():
     elif choice == '7':
         auto_react_comment()
     elif choice == '8':
-    	working-vid()
+    	auto_working_vid()
     elif choice == '0':
         reset()
     elif choice == 'E':
@@ -111,7 +111,7 @@ def auto_react_comment():
     script_name = 'auto-react-comment.py'
     clone_and_run(repo_url, script_name)
     
-def working-vid():
+def auto_working_vid():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'working-vid.py'
     clone_and_run(repo_url, script_name)

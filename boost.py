@@ -2,8 +2,7 @@ import os
 import shutil
 import subprocess  # To run git pull command
 
-logo = (f''' 
-\033[1;32m  
+logo = (f''' \033[1;32m  
           /$$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$$
          | $$__  $$ /$$__  $$ /$$__  $$ /$$__  $$|__  $$__/
          | $$  \\ $$| $$  \\ $$| $$  \\ $$| $$  \\__/   | $$   

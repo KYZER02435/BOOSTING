@@ -40,13 +40,6 @@ def clone_and_run(repo_url, script_name):
     if not os.path.exists(repo_name):
         os.system(f'git clone {repo_url}')
 
-    # Perform git pull to update the repo if already cloned
-    try:
-        subprocess.run(['git', 'pull'], cwd=repo_name, check=True)
-        print("Repository updated successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred while updating: {e}")
-
     os.chdir(repo_name)
     os.system(f'python {script_name}')
     os.chdir('..')

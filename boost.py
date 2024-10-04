@@ -4,7 +4,7 @@ import subprocess  # To run git pull command
 
 red = "\033[1;31m"    # Bold red
 c = "\033[1;96m"      # Cyan (for overview heading)
-g = "\033[1;32m"      # Bold green (added for overview and labels)
+g = "\033[1;32m"      # Bold green
 r = "\033[0m"         # Reset color
 wh = "\033[1;37m"     # Bold white
 
@@ -19,12 +19,11 @@ def count_lines(file_path):
         return 0  # Return 0 if the file does not exist
 
 def overview():
-    print(f"\033[1;32m ━━━━━━━━━━━━━━━━━━━━━━━━━[{g}OVERVIEW{w}]━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print(f"\033[1;32m ━━━━━━━━━━━━━━━━━━━━━━━━━[{g}OVERVIEW{g}]━━━━━━━━━━━━━━━━━━━━━━━━━━")
     total_accounts = count_lines("/sdcard/Test/toka.txt")
     total_pages = count_lines("/sdcard/Test/tokp.txt")
-    print(f"  {g}                   TOTAL ACCOUNTS: {c}{total_accounts}{g}")
-    print(f'{g} ═════════════════════════════════════════════════════════════{w}')
-
+    print(f"  {g}                   TOTAL ACCOUNTS: {g}{total_accounts}{g}")
+    print(f'{g} ═════════════════════════════════════════════════════════════{r}')
 def git_pull_repository():
     repo_path = '.'  # Assuming the script is in the repository you want to update
     try:

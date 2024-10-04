@@ -64,6 +64,7 @@ def main_menu():
     print("[6] Auto Create Page")
     print("[7] Auto React Comment")
     print("[8] Auto Reacts for Videos(NEW METHOD)")
+    print('[9] Auto Reacts for Reels ')
     print("[R] Reset")
     print("[E] Exit")
 
@@ -87,6 +88,8 @@ def main_menu():
         auto_react_comment()
     elif choice == '8':
         auto_working_vid()
+    elif choice == '9':
+        auto_reacts_reels()
     elif choice == 'R':
         reset()
     elif choice == 'E':
@@ -134,6 +137,11 @@ def auto_react_comment():
 def auto_working_vid():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'working-vid.py'
+    clone_and_run(repo_url, script_name)
+    
+def auto_reacts_reels():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'reels_reacts.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

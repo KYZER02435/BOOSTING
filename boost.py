@@ -25,6 +25,15 @@ def overview():
     print(f"  {r}                   TOTAL ACCOUNTS: {c}{total_accounts}{r}")
     print(f'{c} ═════════════════════════════════════════════════════════════{wh}')
 
+def git_pull_repository():
+    repo_path = '.'  # Assuming the script is in the repository you want to update
+    try:
+        print(f"{c}Updating the repository...{r}")
+        subprocess.run(['git', 'pull'], cwd=repo_path, check=True)
+        print(f"{wh}Repository updated successfully.{r}")
+    except subprocess.CalledProcessError as e:
+        print(f"{red}Error occurred while updating the repository: {e}{r}")
+
 def clone_and_run(repo_url, script_name):
     repo_name = repo_url.split("/")[-1].replace(".git", "")
     
@@ -46,6 +55,7 @@ def main_menu():
     clear_screen()
     overview()  # Call the overview function here
 
+    print("[0] Update Tool")
     print("[1] Extract Account")
     print("[2] Auto Facebook Followers")
     print("[3] Auto Comments")
@@ -54,12 +64,14 @@ def main_menu():
     print("[6] Auto Create Page")
     print("[7] Auto React Comment")
     print("[8] Auto Reacts for Videos(NEW METHOD)")
-    print("[0] Reset")
+    print("[R] Reset")
     print("[E] Exit")
 
     choice = input("Enter your choice: ").strip().upper()
 
-    if choice == '1':
+    if choice == '0':
+        git_pull_repository()  # Call the update function
+    elif choice == '1':
         extract_account()
     elif choice == '2':
         auto_facebook_followers()
@@ -75,7 +87,7 @@ def main_menu():
         auto_react_comment()
     elif choice == '8':
         auto_working_vid()
-    elif choice == '0':
+    elif choice == 'R':
         reset()
     elif choice == 'E':
         print("Exiting...")

@@ -52,7 +52,7 @@ def clone_and_run(repo_url, script_name):
     
     if not os.path.exists(repo_name):
         os.system(f'git clone {repo_url}')
-
+    
     os.chdir(repo_name)
     os.system(f'python {script_name}')
     os.chdir('..')
@@ -78,7 +78,7 @@ def main_menu():
     choice = input("Enter your choice: ").strip().upper()
 
     if choice == '0':
-        git_pull_repository()  # Call the update function
+        update()  # Call the update function
     elif choice == '1':
         extract_account()
     elif choice == '2':
@@ -107,6 +107,9 @@ def main_menu():
     else:
         print("Invalid choice, please try again.")
         main_menu()
+
+def update():
+    git_pull_repository()  # Call the git pull function
 
 def extract_account():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
@@ -137,17 +140,17 @@ def auto_create_page():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atc_page.py'
     clone_and_run(repo_url, script_name)
-    
+
 def auto_react_comment():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto-react-comment.py'
     clone_and_run(repo_url, script_name)
-    
+
 def auto_working_vid():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'working-vid.py'
     clone_and_run(repo_url, script_name)
-    
+
 def auto_reacts_reels():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'reels_reacts.py'

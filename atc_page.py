@@ -2,7 +2,7 @@ import requests
 import time
 import random
 from colorama import Fore, Style, init
-
+def buang
 # Initialize colorama
 init(autoreset=True)
 

@@ -1,6 +1,9 @@
 import os
 import shutil
-import subprocess  # To run git pull command
+import subprocess
+import sys
+import threading
+import time
 
 logo = (f''' \033[1;32m  
           /$$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$  /$$$$$$$$
@@ -38,24 +41,41 @@ def overview():
     print(f"  {g}                   TOTAL ACCOUNTS: {g}{total_accounts}{g}")
     print(f'{g} ════════════════════════════════════════════════════════════════{r}')
 
+def loading_spinner():
+    spinner = ['|', '/', '-', '\\']
+    while getattr(threading.currentThread(), "do_run", True):
+        for symbol in spinner:
+            sys.stdout.write(f'\r{symbol} Updating...')
+            sys.stdout.flush()
+            time.sleep(0.2)
+
 def git_pull_repository():
     repo_path = '.'  # Assuming the script is in the repository you want to update
+    spinner_thread = threading.Thread(target=loading_spinner)
+    spinner_thread.start()
+    
     try:
-        print(f"{c}Updating the repository...{r}")
         subprocess.run(['git', 'pull'], cwd=repo_path, check=True)
-        print(f"{wh}Repository updated successfully.{r}")
     except subprocess.CalledProcessError as e:
         print(f"{red}Error occurred while updating the repository: {e}{r}")
+    finally:
+        # Stop the spinner
+        spinner_thread.do_run = False
+        spinner_thread.join()  # Wait for the spinner thread to finish
+        sys.stdout.write('\r')  # Clear the loading line
 
 def clone_and_run(repo_url, script_name):
     repo_name = repo_url.split("/")[-1].replace(".git", "")
     
     if not os.path.exists(repo_name):
         os.system(f'git clone {repo_url}')
-    
+
     os.chdir(repo_name)
     os.system(f'python {script_name}')
     os.chdir('..')
+
+def update_method():
+    git_pull_repository()  # Call the update function
 
 def main_menu():
     clear_screen()
@@ -78,7 +98,7 @@ def main_menu():
     choice = input("Enter your choice: ").strip().upper()
 
     if choice == '0':
-        update()  # Call the update function
+        update_method()  # Call the update function
     elif choice == '1':
         extract_account()
     elif choice == '2':
@@ -108,55 +128,62 @@ def main_menu():
         print("Invalid choice, please try again.")
         main_menu()
 
-def update():
-    git_pull_repository()  # Call the git pull function
-
 def extract_account():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'extract-acc.py'
     clone_and_run(repo_url, script_name)
 
 def auto_facebook_followers():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto-follow.py'
     clone_and_run(repo_url, script_name)
 
 def auto_comments():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto_comment.py'
     clone_and_run(repo_url, script_name)
 
 def auto_reply_to_comments():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atrc.py'
     clone_and_run(repo_url, script_name)
 
 def auto_reacts():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto-reacts.py'
     clone_and_run(repo_url, script_name)
 
 def auto_create_page():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'atc_page.py'
     clone_and_run(repo_url, script_name)
-
+    
 def auto_react_comment():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto-react-comment.py'
     clone_and_run(repo_url, script_name)
-
+    
 def auto_working_vid():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'working-vid.py'
     clone_and_run(repo_url, script_name)
-
+    
 def auto_reacts_reels():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'reels_reacts.py'
     clone_and_run(repo_url, script_name)
 
 def auto_join_groups():
+    update_method()  # Call the update function
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto_join_group.py'
     clone_and_run(repo_url, script_name)

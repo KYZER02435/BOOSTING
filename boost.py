@@ -155,7 +155,7 @@ def auto_reacts_reels():
 
 def auto_join_groups():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
-    script_name = 'join_group.py'
+    script_name = 'auto_join_group.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

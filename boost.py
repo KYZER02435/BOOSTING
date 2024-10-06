@@ -72,6 +72,8 @@ def main_menu():
     print("[8] Auto Reacts for Videos(NEW METHOD)")
     print('[9] Auto Reacts for Reels ')
     print("[10] Auto Join Groups")
+    print("[11] Auto Comments for Reels")
+    print("[12] Auto Comments for Videos")
     print("[R] Reset")
     print("[E] Exit")
 
@@ -99,6 +101,10 @@ def main_menu():
         auto_reacts_reels()
     elif choice == '10':
         auto_join_groups()
+    elif choice == '11':
+        auto_comments_reels()
+    elif choice == '12':
+        auto_comments_vids()
     elif choice == 'R':
         reset()
     elif choice == 'E':
@@ -159,6 +165,16 @@ def auto_reacts_reels():
 def auto_join_groups():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'auto_join_group.py'
+    clone_and_run(repo_url, script_name)
+
+def auto_comments_reels():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'reels_comments.py'
+    clone_and_run(repo_url, script_name)
+
+def auto_comments_vids():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'video_comments.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

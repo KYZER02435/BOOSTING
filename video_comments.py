@@ -53,30 +53,6 @@ def perform_comment(media_id, comment_text, access_token):
         print(f"[EXCEPTION] An error occurred during the request: {error}")
         return False  # Indicate failure
 
-# Post the same comment multiple times
-def post_same_comment(url, comment_text, num_comments):
-    media_id = Video_Extractid(url)
-    if not media_id:
-        print("[ERROR] Invalid URL or unable to extract media ID.")
-        return
-
-    access_tokens = load_data('/sdcard/Test/toka.txt')  # Load access tokens
-
-    comment_count = 0
-
-    while comment_count < num_comments:
-        for access_token in access_tokens:
-            if validate_access_token(access_token):
-                if perform_comment(media_id, comment_text, access_token):  # Check if comment was posted successfully
-                    comment_count += 1
-                if comment_count >= num_comments:
-                    print(f"Reached the limit of {num_comments} comments.")
-                    return
-            else:
-                print(f"[SKIP] Skipping invalid access token: {access_token[:10]}...")
-
-    print(f"Total same comments posted: {comment_count}")
-
 # Post different comments using all tokens
 def post_different_comments(url, num_comments):
     media_id = Video_Extractid(url)
@@ -86,14 +62,20 @@ def post_different_comments(url, num_comments):
 
     access_tokens = load_data('/sdcard/Test/toka.txt')  # Load access tokens
 
+    # Prompt user to input all the comments upfront
+    comments = []
+    for i in range(num_comments):
+        comment = input(f"Enter comment {i + 1}: ")
+        comments.append(comment)
+
     comment_count = 0
 
     while comment_count < num_comments:
         for access_token in access_tokens:
             if validate_access_token(access_token):
-                # Generate the comment dynamically
-                comment_text = f"comment {comment_count + 1}"
-                if perform_comment(media_id, comment_text, access_token):  # Check if comment was posted successfully
+                # Post the corresponding comment from the list
+                comment_text = comments[comment_count]
+                if perform_comment(media_id, comment_text, access_token):  # Check if the comment was posted successfully
                     comment_count += 1
                 if comment_count >= num_comments:
                     print(f"Reached the limit of {num_comments} comments.")

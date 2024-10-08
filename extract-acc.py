@@ -6,7 +6,6 @@ import random
 folder_name = "/sdcard/Test"
 file_names = ["toka.txt", "tokaid.txt", "tokp.txt", "tokpid.txt", "cok.txt", "cokid.txt"]
 
-# Check if the folder exists, if not, create it
 if not os.path.exists(folder_name):
     try:
         os.makedirs(folder_name)
@@ -16,13 +15,12 @@ if not os.path.exists(folder_name):
 else:
     print(f"Folder '{folder_name}' already exists.")
 
-# Check each file in the list
 for file_name in file_names:
     file_path = os.path.join(folder_name, file_name)
-    if not os.path.exists(file_path):  # Check if file exists
+    if not os.path.exists(file_path):  
         try:
             with open(file_path, 'w') as file:
-                pass  # Create an empty file if it doesn't exist
+                pass  
             print(f"File '{file_path}' created.")
         except Exception as e:
             print(f"Failed to create file '{file_path}': {e}")
@@ -37,7 +35,6 @@ wh = '\033[0;37m'
 def linex():
     print("-" * 50)
 
-# Function to count lines in a file
 def count_lines(filepath):
     try:
         if os.path.exists(filepath):
@@ -156,7 +153,7 @@ def cuser(user, passw, user_choice):
         'api_key': '62f8ce9f74b12f84c123cc23437a4a32',
     }
     headers = {
-        'User-Agent': "Dalvik/2.1.0 (Linux; U; Android 8.0.0; SM-A720F Build/R16NW) [FBAN/Orca-Android;FBAV/196.0.0.29.99;FBPN/com.facebook.orca;FBLC/en_US;FBBV/135374479;FBCR/SMART;FBMF/samsung;FBBD/samsung;FBDV/SM-A720F;FBSV/8.0.0;FBCA/armeabi-v7a:armeabi;FBDM/{density=3.0,width=1080,height=1920};FB_FW/1;]",
+        'User-Agent': "Dalvik/2.1.0 (Linux; U; Android 9; SM-E7000 Build/SP1A.389010.014) [FBAN/Orca-Android;FBAV/233.0.0.18.117;FBBV/483940569;FBDM/{density=2.7,width=1080,height=1920};FBLC/en_US;FBCR/TNT;FBMF/samsung;FBBD/samsung;FBPN/com.facebook.orca;FBDV/SM-E7000;FBSV/9;FBOP/2;FBCA/arm86-v6a;]",
         'Content-Type': 'application/x-www-form-urlencoded',
         'Host': 'graph.facebook.com'
     }
@@ -187,5 +184,4 @@ def cuser(user, passw, user_choice):
     else:
         print(f"Failed: {user} isn't extracted.")
 
-# Start the tool
 Initialize()

@@ -128,7 +128,7 @@ def Auto():
         print('Invalid input.')
 
 def process_users(user_list, user_choice):
-    with ThreadPoolExecutor(max_workers=10) as executor:  # Adjust the number of threads as needed
+    with ThreadPoolExecutor(max_workers=2) as executor:  # Adjust the number of threads as needed
         futures = [executor.submit(cuser, user_pass[0], user_pass[1], user_choice) for user_pass in user_list if len(user_pass) == 2]
         for future in futures:
             future.result()

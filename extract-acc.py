@@ -2,8 +2,6 @@ import os
 import requests
 import uuid
 import random
-import threading
-from concurrent.futures import ThreadPoolExecutor
 
 folder_name = "/sdcard/Test"
 file_names = ["toka.txt", "tokaid.txt", "tokp.txt", "tokpid.txt", "cok.txt", "cokid.txt"]
@@ -28,7 +26,6 @@ for file_name in file_names:
             print(f"Failed to create file '{file_path}': {e}")
     else:
         print(f"File '{file_path}' already exists.")
-
 # Define colors
 red = '\033[91m'
 c = '\033[0m'
@@ -89,8 +86,9 @@ def ManFile():
         try:
             user_choice = input(" Input y or leave blank if it's an account. If it's a page, input n (y/N/d): ")
             with open(file_path, 'r') as file:
-                user_list = [line.strip().split('|') for line in file]
-                process_users(user_list, user_choice)
+                for line in file:
+                    user_pass = line.strip().split('|')
+                    process_users([user_pass], user_choice)
         except Exception as e:
             print(f'Error reading the file: {e}')
     else:
@@ -116,8 +114,9 @@ def Auto():
                 try:
                     user_choice = input(" Input y or leave blank if it's an account. If it's a page, input n (y/N/d): ")
                     with open(selected_file, 'r') as file:
-                        user_list = [line.strip().split('|') for line in file]
-                        process_users(user_list, user_choice)
+                        for line in file:
+                            user_pass = line.strip().split('|')
+                            process_users([user_pass], user_choice)
                 except Exception as e:
                     print(f'Error reading the file: {e}')
             else:
@@ -128,10 +127,12 @@ def Auto():
         print('Invalid input.')
 
 def process_users(user_list, user_choice):
-    with ThreadPoolExecutor(max_workers=2) as executor:  # Adjust the number of threads as needed
-        futures = [executor.submit(cuser, user_pass[0], user_pass[1], user_choice) for user_pass in user_list if len(user_pass) == 2]
-        for future in futures:
-            future.result()
+    for user_pass in user_list:
+        if len(user_pass) == 2:
+            user, passw = user_pass
+            cuser(user, passw, user_choice)
+        else:
+            print(f"Invalid format in line: {user_pass}")
 
 def cuser(user, passw, user_choice):
     accessToken = '350685531728|62f8ce9f74b12f84c123cc23437a4a32'
@@ -157,33 +158,30 @@ def cuser(user, passw, user_choice):
         'Host': 'graph.facebook.com'
     }
     
-    try:
-        response = requests.post("https://b-graph.facebook.com/auth/login", headers=headers, data=data, allow_redirects=False, timeout=10).json()
-
-        if "session_key" in response:
-            print(f"Success: {user} extracted successfully.")
-            cookie = ';'.join(f"{i['name']}={i['value']}" for i in response['session_cookies'])
-            c_user_value = [i['value'] for i in response['session_cookies'] if i['name'] == 'c_user'][0]
-
-            if user_choice.lower() in ['n', 'no']:
-                with open('/sdcard/Test/tokpid.txt', 'a') as f:
-                    f.write(f'{c_user_value}\n')
-                with open('/sdcard/Test/tokp.txt', 'a') as f:
-                    f.write(f'{response["access_token"]}\n')
-            else:
-                with open('/sdcard/Test/toka.txt', 'a') as f:
-                    f.write(f'{response["access_token"]}\n')
-                with open('/sdcard/Test/tokaid.txt', 'a') as f:
-                    f.write(f'{c_user_value}\n')
-
-            with open('/sdcard/Test/cok.txt', 'a') as f:
-                f.write(f'{cookie}\n')
-            with open('/sdcard/Test/cokid.txt', 'a') as f:
-                f.write(f'{c_user_value}\n')
-        else:
-            print(f"Failed: {user} isn't extracted.")
+    response = requests.post("https://b-graph.facebook.com/auth/login", headers=headers, data=data, allow_redirects=False).json()
     
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed for {user}: {e}")
+    if "session_key" in response:
+        print(f"Success: {user} extracted successfully.")
+        
+        cookie = ';'.join(f"{i['name']}={i['value']}" for i in response['session_cookies'])
+        c_user_value = [i['value'] for i in response['session_cookies'] if i['name'] == 'c_user'][0]
+        
+        if user_choice.lower() in ['n', 'no']:
+            with open('/sdcard/Test/tokpid.txt', 'a') as f:
+                f.write(f'{c_user_value}\n')
+            with open('/sdcard/Test/tokp.txt', 'a') as f:
+                f.write(f'{response["access_token"]}\n')
+        else:
+            with open('/sdcard/Test/toka.txt', 'a') as f:
+                f.write(f'{response["access_token"]}\n')
+            with open('/sdcard/Test/tokaid.txt', 'a') as f:
+                f.write(f'{c_user_value}\n')
+        
+        with open('/sdcard/Test/cok.txt', 'a') as f:
+            f.write(f'{cookie}\n')
+        with open('/sdcard/Test/cokid.txt', 'a') as f:
+            f.write(f'{c_user_value}\n')
+    else:
+        print(f"Failed: {user} isn't extracted.")
 
 Initialize()

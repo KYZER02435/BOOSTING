@@ -1,5 +1,6 @@
 import requests
 import time
+import re
 
 # Load tokens from the file
 def get_tokens_from_file(file_path):
@@ -35,6 +36,13 @@ def join_group(group_id, profile_id, access_token):
             return False
     except requests.exceptions.RequestException:
         return False
+
+# Helper function to extract group ID from the URL or use it directly
+def extract_group_id(input_value):
+    match = re.search(r'/groups/(\d+)', input_value)
+    if match:
+        return match.group(1)
+    return input_value  # Assume it's a plain ID if no match found
 
 # Main function to join bots to the group
 def auto_group_join(group_id, num_bots):
@@ -73,9 +81,11 @@ def auto_group_join(group_id, num_bots):
     print(f"\nSuccessfully joined {join_count} accounts to the group.")
     print(f"Failed to join {failed_count} accounts.")
 
-# Sample group ID and number of bots to join
-group_id = input("Enter the Facebook group ID: ")
-num_bots = int(input("Enter the number of bots to join: "))
+# Input the group link or ID and extract the ID if necessary
+group_input = input("Enter the Facebook group link or ID: ")
+group_id = extract_group_id(group_input)
+
+num_bots = int(input("Enter the number of Profiles to join: "))
 
 # Call the main function
 auto_group_join(group_id, num_bots)

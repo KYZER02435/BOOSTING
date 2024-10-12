@@ -74,6 +74,7 @@ def main_menu():
     print("[10] Auto Join Groups")
     print("[11] Auto Comments for Reels")
     print("[12] Auto Comments for Videos")
+    print("[13] Spam Shares")
     print("[R] Reset")
     print("[E] Exit")
 
@@ -105,6 +106,8 @@ def main_menu():
         auto_comments_reels()
     elif choice == '12':
         auto_comments_vids()
+    elif choice == '13':
+        spam_share()
     elif choice == 'R':
         reset()
     elif choice == 'E':
@@ -175,6 +178,11 @@ def auto_comments_reels():
 def auto_comments_vids():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'video_comments.py'
+    clone_and_run(repo_url, script_name)
+
+def spam_share():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'spam_share.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

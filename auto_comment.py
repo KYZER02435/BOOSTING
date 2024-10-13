@@ -7,10 +7,16 @@ def get_ids_tokens(file_path):
 
 def linktradio(post_link):
     try:
-        post_id = post_link.split('/posts/')[1].split('/')[0]
+        if 'photo.php?fbid=' in post_link:
+            post_id = post_link.split('fbid=')[1].split('&')[0]
+        elif '/posts/' in post_link:
+            post_id = post_link.split('/posts/')[1].split('/')[0]
+        else:
+            print("Invalid post link.")
+            return None
         return post_id
     except IndexError:
-        print("Invalid post link.")
+        print("Could not extract post ID.")
         return None
 
 def get_user_name():
@@ -31,16 +37,14 @@ def comment_on_facebook_post():
 
     comment_texts = []
     if comment_option == '1':
-        # Same comment for all
         comment_text = input('Enter the comment text (or leave blank for auto comment): ')
         if not comment_text:
             current_time = datetime.now().strftime("%I:%M %p")
             current_date = datetime.now().strftime("%Y-%m-%d")
             user_name = get_user_name()
             comment_text = f'Time:「{current_time}」「{current_date}」\n-「Auto comment by {user_name}」'
-        comment_texts = [comment_text] * num_comments  # Same comment repeated
+        comment_texts = [comment_text] * num_comments
     elif comment_option == '2':
-        # Different comments for each
         for i in range(num_comments):
             comment_text = input(f'Enter comment {i + 1}: ')
             if not comment_text:
@@ -69,9 +73,9 @@ def comment_on_facebook_post():
     user_count = len(user_ids)
 
     while successful_comments < num_comments:
-        user_id = user_ids[current_comment_index % user_count]  # Cycle through users if needed
+        user_id = user_ids[current_comment_index % user_count]
         access_token = access_tokens[current_comment_index % user_count]
-        comment_text = comment_texts[current_comment_index % len(comment_texts)]  # Cycle through comments
+        comment_text = comment_texts[current_comment_index % len(comment_texts)]
         
         try:
             if not has_commented(post_id, access_token, user_id):
@@ -81,7 +85,7 @@ def comment_on_facebook_post():
                 
                 if response.status_code == 200:
                     print(f"Success: Commented on {post_id} with user ID {user_id}.")
-                    successful_comments += 1  # Increment only on success
+                    successful_comments += 1
                 else:
                     print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
             else:
@@ -89,7 +93,7 @@ def comment_on_facebook_post():
         except requests.exceptions.RequestException:
             print(f"Failed to comment. User ID: {user_id}, Post ID: {post_id}")
         
-        current_comment_index += 1  # Move to the next comment/user
+        current_comment_index += 1
 
     print(f"Total successful comments: {successful_comments}")
 

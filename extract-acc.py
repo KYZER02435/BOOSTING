@@ -3,17 +3,22 @@ import requests
 import uuid
 import random
 
+# Define color codes
+green = '\033[1;32m'  # Bold Green
+red = '\033[1;31m'    # Bold Red
+reset = '\033[0m'      # Reset
+
 folder_name = "/sdcard/Test"
 file_names = ["toka.txt", "tokaid.txt", "tokp.txt", "tokpid.txt", "cok.txt", "cokid.txt"]
 
 if not os.path.exists(folder_name):
     try:
         os.makedirs(folder_name)
-        print(f"Folder '{folder_name}' created.")
+        print(f"{green}Folder '{folder_name}' created.{reset}")
     except Exception as e:
-        print(f"Failed to create folder '{folder_name}': {e}")
+        print(f"{red}Failed to create folder '{folder_name}': {e}{reset}")
 else:
-    print(f"Folder '{folder_name}' already exists.")
+    print(f"{green}Folder '{folder_name}' already exists.{reset}")
 
 for file_name in file_names:
     file_path = os.path.join(folder_name, file_name)
@@ -21,16 +26,11 @@ for file_name in file_names:
         try:
             with open(file_path, 'w') as file:
                 pass  
-            print(f"File '{file_path}' created.")
+            print(f"{green}File '{file_path}' created.{reset}")
         except Exception as e:
-            print(f"Failed to create file '{file_path}': {e}")
+            print(f"{red}Failed to create file '{file_path}': {e}{reset}")
     else:
-        print(f"File '{file_path}' already exists.")
-# Define colors
-red = '\033[91m'
-c = '\033[0m'
-r = '\033[1;31m'
-wh = '\033[0;37m'
+        print(f"{green}File '{file_path}' already exists.{reset}")
 
 def linex():
     print("-" * 50)
@@ -43,15 +43,15 @@ def count_lines(filepath):
         else:
             return 0
     except Exception as e:
-        print(f"Error counting lines in {filepath}: {e}")
+        print(f"{red}Error counting lines in {filepath}: {e}{reset}")
         return 0
 
 def overview():
-    print(f"\033[1;96m  ━━━━━━━━━━━━━━━━━━━━━━━━[{red}OVERVIEW{c}]━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    print(f"\033[1;96m  ━━━━━━━━━━━━━━━━━━━━━━━━[{red}OVERVIEW{reset}]━━━━━━━━━━━━━━━━━━━━━━━━━━")
     total_accounts = count_lines("/sdcard/Test/toka.txt")
     total_pages = count_lines("/sdcard/Test/tokp.txt")
-    print(f"  {r}             TOTAL ACCOUNTS: {c}{total_accounts}{r} | TOTAL PAGES: {c}{total_pages} {r}")
-    print(f'{c}  ════════════════════════════════════════════════════════════{wh}')
+    print(f"  {red}             TOTAL ACCOUNTS: {reset}{total_accounts}{red} | TOTAL PAGES: {reset}{total_pages} {red}")
+    print(f'{reset}  ════════════════════════════════════════════════════════════')
 
 def Initialize():
     print(f"  Please choose how you want to Extract.\n")
@@ -70,7 +70,7 @@ def Initialize():
     elif choice == '4':
         overview()
     else:
-        print('Invalid option.')
+        print(f"{red}Invalid option.{reset}")
         Initialize()
 
 def Manual():
@@ -90,16 +90,16 @@ def ManFile():
                     user_pass = line.strip().split('|')
                     process_users([user_pass], user_choice)
         except Exception as e:
-            print(f'Error reading the file: {e}')
+            print(f'{red}Error reading the file: {e}{reset}')
     else:
-        print('File location not found.')
+        print(f'{red}File location not found.{reset}')
 
 def Auto():
     directory = '/sdcard'
     txt_files = [f for f in os.listdir(directory) if f.endswith('.txt')]
     
     if not txt_files:
-        print(f'No .txt files found in {directory}')
+        print(f'{red}No .txt files found in {directory}{reset}')
         return
     
     for i, filename in enumerate(txt_files, start=1):
@@ -118,13 +118,13 @@ def Auto():
                             user_pass = line.strip().split('|')
                             process_users([user_pass], user_choice)
                 except Exception as e:
-                    print(f'Error reading the file: {e}')
+                    print(f'{red}Error reading the file: {e}{reset}')
             else:
-                print('File not found.')
+                print(f'{red}File not found.{reset}')
         else:
-            print('Invalid option.')
+            print(f'{red}Invalid option.{reset}')
     except ValueError:
-        print('Invalid input.')
+        print(f'{red}Invalid input.{reset}')
 
 def process_users(user_list, user_choice):
     for user_pass in user_list:
@@ -132,7 +132,7 @@ def process_users(user_list, user_choice):
             user, passw = user_pass
             cuser(user, passw, user_choice)
         else:
-            print(f"Invalid format in line: {user_pass}")
+            print(f"{red}Invalid format in line: {user_pass}{reset}")
 
 def cuser(user, passw, user_choice):
     accessToken = '350685531728|62f8ce9f74b12f84c123cc23437a4a32'
@@ -161,7 +161,7 @@ def cuser(user, passw, user_choice):
     response = requests.post("https://b-graph.facebook.com/auth/login", headers=headers, data=data, allow_redirects=False).json()
     
     if "session_key" in response:
-        print(f"Success: {user} extracted successfully.")
+        print(f"{green}Success: {user} extracted successfully.{reset}")
         
         cookie = ';'.join(f"{i['name']}={i['value']}" for i in response['session_cookies'])
         c_user_value = [i['value'] for i in response['session_cookies'] if i['name'] == 'c_user'][0]
@@ -182,6 +182,6 @@ def cuser(user, passw, user_choice):
         with open('/sdcard/Test/cokid.txt', 'a') as f:
             f.write(f'{c_user_value}\n')
     else:
-        print(f"Failed: {user} isn't extracted.")
+        print(f"{red}Failed: {user} isn't extracted.{reset}")
 
 Initialize()

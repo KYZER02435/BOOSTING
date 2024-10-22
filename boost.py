@@ -75,6 +75,7 @@ def main_menu():
     print("[11] Auto Comments for Reels")
     print("[12] Auto Comments for Videos")
     print("[13] Spam Shares")
+    print("[C] AUTO REMOVE DEAD ACCOUNTS")
     print("[R] Reset")
     print("[E] Exit")
 
@@ -108,6 +109,8 @@ def main_menu():
         auto_comments_vids()
     elif choice == '13':
         spam_share()
+    elif choice == 'C':
+        acc_checker()
     elif choice == 'R':
         reset()
     elif choice == 'E':
@@ -183,6 +186,11 @@ def auto_comments_vids():
 def spam_share():
     repo_url = 'https://github.com/KYZER02435/BOOSTING'
     script_name = 'spam_share.py'
+    clone_and_run(repo_url, script_name)
+
+def acc_checker():
+    repo_url = 'https://github.com/KYZER02435/BOOSTING'
+    script_name = 'acc_checker.py'
     clone_and_run(repo_url, script_name)
 
 def reset():

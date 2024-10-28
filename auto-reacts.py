@@ -1,9 +1,17 @@
-import requests, json, time, uuid, base64, re
+import requests, json, time, uuid, base64, re, threading
+from rich import print  # Import the print function from rich
+
+r = "[bold red]"
+g = "[bold green]"
+
+# Thread-safe counter for successful reactions
+successful_reactions = 0
+counter_lock = threading.Lock()
 
 def AutoReact():
-    def Reaction(actor_id: str, post_id: str, react: str, token: str):
+    def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
         rui = requests.Session()
-        feedback_id = str(base64.b64encode(('feedback:{}'.format(post_id)).encode('utf-8')).decode('utf-8'))
+        feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
         var = {
             "input": {
                 "feedback_referrer": "native_newsfeed",
@@ -35,17 +43,23 @@ def AutoReact():
         pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
         try:
             if react == '0':
-                print(f"「Success」» Removed reaction from {actor_id} on {post_id}")
+                print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
                 return True
             elif react in str(pos):
-                print(f"「Success」» Reacted with » {actor_id} to {post_id}")
+                print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
                 return True
             else:
-                print(f"「Failed」» Reacted with » {actor_id} to {post_id}")
+                print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
                 return False
         except Exception:
-            print('Reaction failed due to an error.')
+            print(f"{r}Reaction failed due to an error.")
             return False
+
+    def process_reaction(actor_id, token, post_id, react):
+        global successful_reactions
+        if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+            with counter_lock:
+                successful_reactions += 1
 
     def choose_reaction():
         print("Please choose the reaction you want to use.\n")
@@ -64,35 +78,33 @@ def AutoReact():
         
         rec = input('Choose a reaction: ')
         reaction_ids = {
-            '1': '1635855486666999',  # Like
-            '2': '1678524932434102',  # Love
-            '3': '115940658764963',   # Haha
-            '4': '478547315650144',   # Wow
-            '5': '613557422527858',   # Care
-            '6': '908563459236466',   # Sad
-            '7': '444813342392137',   # Angry
-            '8': '0'                 # Remove Reaction
+            '1': '1635855486666999',
+            '2': '1678524932434102',
+            '3': '115940658764963',
+            '4': '478547315650144',
+            '5': '613557422527858',
+            '6': '908563459236466',
+            '7': '444813342392137',
+            '8': '0'
         }
         return reaction_ids.get(rec)
 
     def linktradio(post_link: str) -> str:
-        # Extract post ID from various Facebook URLs
         patterns = [
-            r'/posts/(\w+)',          # Regular post
-            r'/videos/(\w+)',         # Video post
-            r'/groups/(\d+)/permalink/(\d+)',  # Group permalink post
-            r'/reels/(\w+)',          # Reels
-            r'/live/(\w+)',           # Live videos
-            r'/photos/(\w+)',         # Photo posts
-            r'/permalink/(\w+)',      # Permalink posts
-            r'story_fbid=(\w+)',      # Story posts
-            r'fbid=(\d+)'             # Photo post (new pattern for photo links)
+            r'/posts/(\w+)',
+            r'/videos/(\w+)',
+            r'/groups/(\d+)/permalink/(\d+)',
+            r'/reels/(\w+)',
+            r'/live/(\w+)',
+            r'/photos/(\w+)',
+            r'/permalink/(\w+)',
+            r'story_fbid=(\w+)',
+            r'fbid=(\d+)'
         ]
         
         for pattern in patterns:
             match = re.search(pattern, post_link)
             if match:
-                # Return the group ID and post ID for group permalink posts
                 if pattern == r'/groups/(\d+)/permalink/(\d+)':
                     return match.group(2)
                 return match.group(1)
@@ -109,7 +121,7 @@ def AutoReact():
         print("1. A regular post")
         print("2. A group post")
         print("3. A video post")
-        print("4. A photo post")  # New option for photo post
+        print("4. A photo post")
         choice = input('Choose an option: ')
         return choice
 
@@ -127,7 +139,7 @@ def AutoReact():
     elif choice == '3':
         post_link = input('Enter the Facebook video post link: ')
         post_id = linktradio(post_link)
-    elif choice == '4':  # New handling for photo post
+    elif choice == '4':
         post_link = input('Enter the Facebook photo post link: ')
         post_id = linktradio(post_link)
     else:
@@ -138,28 +150,23 @@ def AutoReact():
         return
     
     react = choose_reaction()
-    if react == '0':
-        remove_count = int(input("How many reactions do you want to remove? "))
-        reactions_removed = 0
-        for actor_id, token in zip(actor_ids, tokens):
-            if reactions_removed >= remove_count:
-                break
-            success = Reaction(actor_id=actor_id, post_id=post_id, react='0', token=token)
-            if success:
-                reactions_removed += 1
-        print(f"All {reactions_removed} reactions have been successfully removed! You're awesome!")
-    elif react:
+    if react:
         react_count = int(input("How many reactions do you want to send? "))
-        reactions_sent = 0
+        threads = []
+
         for actor_id, token in zip(actor_ids, tokens):
-            if reactions_sent >= react_count:
+            if len(threads) >= react_count:
                 break
-            success = Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token)
-            if success:
-                reactions_sent += 1
-        print(f"All {reactions_sent} reactions have been successfully sent! You're awesome!")
+            t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
     else:
-        print('Invalid reaction option.')
+        print('[bold red]Invalid reaction option.[/bold red]')
 
 # Run the AutoReact script
 AutoReact()

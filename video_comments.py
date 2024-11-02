@@ -53,6 +53,31 @@ def perform_comment(media_id, comment_text, access_token):
         print(f"[EXCEPTION] An error occurred during the request: {error}")
         return False  # Indicate failure
 
+# Perform the comment request repeatedly using all tokens
+def post_same_comment(url, comment_text, num_comments):
+    media_id = Video_Extractid(url)
+    if not media_id:
+        print("[ERROR] Invalid URL or unable to extract media ID.")
+        return
+
+    access_tokens = load_data('/sdcard/Test/toka.txt')  # Load access tokens
+
+    comment_count = 0
+
+    while comment_count < num_comments:
+        for access_token in access_tokens:
+            if validate_access_token(access_token):
+                # Post the same comment each time
+                if perform_comment(media_id, comment_text, access_token):  # Check if the comment was posted successfully
+                    comment_count += 1
+                if comment_count >= num_comments:
+                    print(f"Reached the limit of {num_comments} comments.")
+                    return
+            else:
+                print(f"[SKIP] Skipping invalid access token: {access_token[:10]}...")
+
+    print(f"Total comments posted: {comment_count}")
+
 # Post different comments using all tokens
 def post_different_comments(url, num_comments):
     media_id = Video_Extractid(url)

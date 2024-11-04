@@ -64,7 +64,7 @@ def auto_react_to_reels_fast(reels_link, reaction_type, num_reactions, tokens):
     # Using ThreadPoolExecutor for parallel processing
     total_failed_reactions = 0
 
-    with ThreadPoolExecutor(max_workers=30) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         future_to_token = {executor.submit(react_with_token, token): token for token in tokens}
 
         for future in as_completed(future_to_token):

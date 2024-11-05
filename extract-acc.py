@@ -153,7 +153,7 @@ def cuser(user, passw, user_choice):
         'api_key': '62f8ce9f74b12f84c123cc23437a4a32',
     }
     headers = {
-        'User-Agent': "Dalvik/2.1.0 (Linux; U; Android 11; SM-T337V Build/AUJ54T) [FBAN/FB4A;FBAV/110.0.0.19.88;FBBV/461693212;FBDM/{density=2.7,width=1080,height=1920};FBLC/en_US;FBRV/0;FBCR/Sprint;FBMF/samsung;FBBD/samsung;FBPN/com.facebook.katana;FBDV/SM-T337V;FBSV/11;FBOP/4;FBCA/arm64-v8a:armeabi;]",
+        'User-Agent': "Dalvik/2.1.0 (Linux; U; Android 14; SM-E500H Build/SP1A.113346.023) [FBAN/FB4A;FBAV/279.0.0.20.93;FBBV/297563783;FBDM/{density=2.7,width=1080,height=1920};FBLC/en_US;FBCR/null;FBMF/samsung;FBBD/samsung;FBPN/com.facebook.katana;FBDV/SM-E500H;FBSV/14;FBOP/1;FBCA/arm64-v8a:armeabi;]",
         'Content-Type': 'application/x-www-form-urlencoded',
         'Host': 'graph.facebook.com'
     }

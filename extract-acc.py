@@ -134,13 +134,12 @@ def process_users(user_list, user_choice):
         else:
             print(f"{red}Invalid format in line: {user_pass}{reset}")
 
-def generate_random_user_agent():
-    major_versions = [300, 321, 326, 330, 340, 350, 360, 370, 380] 
-    major_version = random.choice(major_versions)
-    minor_version = random.randint(50, 99) if major_version > 350 else random.randint(0, 49)
-    patch_version = random.randint(500, 999) if major_version > 350 else random.randint(100, 499)
-    
-    fbav = f"{major_version}.{minor_version}.0.{patch_version}"
+def kyzer():
+    major_versions = [300, 321, 326, 330, 340, 350, 360, 370, 380]  # Known major versions
+    minor_version = random.randint(0, 99)
+    patch_version = random.randint(100, 999)
+
+    fbav = f"{random.choice(major_versions)}.{minor_version}.0.{patch_version}"
     fbbv = str(random.randint(100000000, 999999999))
     density = random.choice(["1.0", "1.5", "2.0", "2.5", "3.0", "4.0", "5.0", "6.0", "8.0"])
 
@@ -391,6 +390,7 @@ def generate_random_user_agent():
     carrier = random.choice(carriers)
 
     user_agent = (
+        f"[FBAN/FBWEB;FBAV/{random.randint(11, 99)}.0.0.{random.randint(1111, 9999)};FBBV/{random.randint(1111111, 9999999)};"
         f"[FBAN/FBWEB;FBAV/{fbav};FBBV/{fbbv};"
         f"FBDM{{density={density},width={width},height={height}}};"
         f"FBLC/{fblc};FBRV/{fbrv};"
@@ -418,7 +418,7 @@ def cuser(user, passw, user_choice):
         'api_key': '62f8ce9f74b12f84c123cc23437a4a32',
     }
     headers = {
-        'User-Agent': generate_random_user_agent(),
+        'User-Agent': kyzer(),
         'Content-Type': 'application/x-www-form-urlencoded',
         'Host': 'graph.facebook.com'
     }

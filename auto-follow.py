@@ -58,7 +58,7 @@ def follow_facebook_profile():
         else:
             print(f"[bold red]Failed: Could not follow the profile '{profile_name}' with token ID {i + 1}[/bold red]")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = []
         for i, access_token in enumerate(access_tokens):
             if follow_count >= num_followers:

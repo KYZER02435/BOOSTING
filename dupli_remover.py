@@ -6,30 +6,32 @@ def remove_duplicates_in_files(tokaid_path, toka_path):
     with open(toka_path, 'r') as toka_file:
         toka_lines = toka_file.readlines()
 
-    # Dictionary to track first occurrences and list to store duplicates' line indices
-    seen_lines = {}
-    duplicate_indices = []
+    # Dictionary to track the latest occurrence of each UID
+    latest_uid_index = {}
 
-    # Identify duplicates by line content and mark duplicates for removal
+    # Identify latest occurrences of each UID
     for i, line in enumerate(tokaid_lines):
-        if line in seen_lines:
-            duplicate_indices.append(i)  # Mark duplicate line number for removal
-        else:
-            seen_lines[line] = i  # Save the first occurrence line number
+        uid = line.split()[0]  # Assuming UID is the first item on each line
+        latest_uid_index[uid] = i  # Always store the latest occurrence
 
-    # Print and remove duplicates from both tokaid_lines and toka_lines
+    # Print and remove duplicates, keeping only the latest entries
     print("Removing the following duplicates:")
-    for index in sorted(duplicate_indices, reverse=True):
-        print(f"Line {index + 1}: '{tokaid_lines[index].strip()}'")
-        del tokaid_lines[index]
-        del toka_lines[index]
+    new_tokaid_lines = []
+    new_toka_lines = []
+    for i, line in enumerate(tokaid_lines):
+        uid = line.split()[0]
+        if latest_uid_index[uid] == i:
+            new_tokaid_lines.append(tokaid_lines[i])
+            new_toka_lines.append(toka_lines[i])
+        else:
+            print(f"Line {i + 1}: '{line.strip()}' (duplicate removed)")
 
     # Write the modified content back to each file
     with open(tokaid_path, 'w') as tokaid_file:
-        tokaid_file.writelines(tokaid_lines)
+        tokaid_file.writelines(new_tokaid_lines)
     
     with open(toka_path, 'w') as toka_file:
-        toka_file.writelines(toka_lines)
+        toka_file.writelines(new_toka_lines)
 
     print("Duplicate removal complete.")
 

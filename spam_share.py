@@ -30,16 +30,22 @@ def load_tokens(file_path):
     with open(file_path, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
-def worker(tokens, link):
-    """Thread worker function to share the post once with all tokens."""
-    for token in tokens:
+def worker(token, link, share_count):
+    """Thread worker function to share posts multiple times for one token."""
+    for _ in range(share_count):
         share_post(token, link)
 
 def fast_share(tokens, link, total_shares):
     """Executes the sharing process using multiple threads."""
-    for _ in range(total_shares):
-        thread = threading.Thread(target=worker, args=(tokens, link))
+    share_count_per_token = max(1, total_shares // len(tokens))
+    threads = []
+
+    for token in tokens:
+        thread = threading.Thread(target=worker, args=(token, link, share_count_per_token))
+        threads.append(thread)
         thread.start()
+
+    for thread in threads:
         thread.join()
 
     print(f"\n🚀 Completed {total_shares} shares across all tokens.")

@@ -35,26 +35,31 @@ class ShareManager:
 
     def worker(self):
         """Thread worker function to process tokens from the queue."""
-        while not self.queue.empty():
-            token = self.queue.get()
-            if self.success_count >= self.total_shares:
-                break
-            self.share_post(token)
-            self.queue.task_done()
+        while self.success_count < self.total_shares:
+            try:
+                token = self.queue.get(timeout=1)  # Timeout to avoid hanging threads
+                self.share_post(token)
+                self.queue.task_done()
+                if self.success_count >= self.total_shares:
+                    break
+            except Exception:
+                break  # Exit if queue is empty or timeout occurs
 
     def start_sharing(self):
         """Starts the sharing process with threads."""
-        for token in self.tokens:
-            self.queue.put(token)
+        while self.success_count < self.total_shares:
+            # Refill the queue with tokens until the target is met
+            for token in self.tokens:
+                self.queue.put(token)
 
-        threads = []
-        for _ in range(min(10, len(self.tokens))):  # Limit to 10 concurrent threads
-            thread = threading.Thread(target=self.worker)
-            threads.append(thread)
-            thread.start()
+            threads = []
+            for _ in range(min(10, len(self.tokens))):  # Limit to 10 concurrent threads
+                thread = threading.Thread(target=self.worker)
+                threads.append(thread)
+                thread.start()
 
-        for thread in threads:
-            thread.join()
+            for thread in threads:
+                thread.join()
 
         print(f"\n🚀 Completed {self.success_count}/{self.total_shares} successful shares.")
 

@@ -1,25 +1,62 @@
 import os
 import requests
 import threading
+from queue import Queue
 
-def share_post(token, link):
-    """Shares a post on the user's feed with 'Only Me' privacy."""
-    url = f"https://graph.facebook.com/v13.0/me/feed"
-    payload = {
-        'link': link,
-        'published': '0',  
-        'privacy': '{"value":"SELF"}',  
-        'access_token': token
-    }
+class ShareManager:
+    def __init__(self, tokens, link, total_shares):
+        self.tokens = tokens
+        self.link = link
+        self.total_shares = total_shares
+        self.success_count = 0
+        self.lock = threading.Lock()
+        self.queue = Queue()
 
-    try:
-        response = requests.post(url, data=payload).json()
-        if 'id' in response:
-            print(f"✅ Post shared successfully. Post ID: {response['id']}")
-        else:
-            print(f"❌ Failed to share post: {response}")
-    except requests.exceptions.RequestException as e:
-        print(f"⚠️ Network error: {e}")
+    def share_post(self, token):
+        """Shares a post on the user's feed with 'Only Me' privacy."""
+        url = f"https://graph.facebook.com/v13.0/me/feed"
+        payload = {
+            'link': self.link,
+            'published': '0',
+            'privacy': '{"value":"SELF"}',
+            'access_token': token
+        }
+
+        try:
+            response = requests.post(url, data=payload).json()
+            if 'id' in response:
+                with self.lock:
+                    self.success_count += 1
+                    print(f"✅ Post shared successfully. Total: {self.success_count}/{self.total_shares}")
+            else:
+                print(f"❌ Failed to share post: {response}")
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Network error: {e}")
+
+    def worker(self):
+        """Thread worker function to process tokens from the queue."""
+        while not self.queue.empty():
+            token = self.queue.get()
+            if self.success_count >= self.total_shares:
+                break
+            self.share_post(token)
+            self.queue.task_done()
+
+    def start_sharing(self):
+        """Starts the sharing process with threads."""
+        for token in self.tokens:
+            self.queue.put(token)
+
+        threads = []
+        for _ in range(min(10, len(self.tokens))):  # Limit to 10 concurrent threads
+            thread = threading.Thread(target=self.worker)
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        print(f"\n🚀 Completed {self.success_count}/{self.total_shares} successful shares.")
 
 def load_tokens(file_path):
     """Loads tokens from a file, one token per line."""
@@ -29,26 +66,6 @@ def load_tokens(file_path):
 
     with open(file_path, 'r') as f:
         return [line.strip() for line in f if line.strip()]
-
-def worker(token, link, share_count):
-    """Thread worker function to share posts multiple times for one token."""
-    for _ in range(share_count):
-        share_post(token, link)
-
-def fast_share(tokens, link, total_shares):
-    """Executes the sharing process using multiple threads."""
-    share_count_per_token = max(1, total_shares // len(tokens))
-    threads = []
-
-    for token in tokens:
-        thread = threading.Thread(target=worker, args=(token, link, share_count_per_token))
-        threads.append(thread)
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-
-    print(f"\n🚀 Completed {total_shares} shares across all tokens.")
 
 def main():
     token_file = "/sdcard/Test/toka.txt"
@@ -68,7 +85,8 @@ def main():
         print("❌ Invalid input. Please enter a number.")
         return
 
-    fast_share(tokens, link, total_shares)
+    manager = ShareManager(tokens, link, total_shares)
+    manager.start_sharing()
 
 if __name__ == "__main__":
     main()

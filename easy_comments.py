@@ -11,12 +11,14 @@ def linktradio(post_link):
             post_id = post_link.split('fbid=')[1].split('&')[0]
         elif '/posts/' in post_link:
             post_id = post_link.split('/posts/')[1].split('/')[0]
+        elif '/videos/' in post_link:
+            post_id = post_link.split('/videos/')[1].split('/')[0].split('?')[0]
         else:
-            print("Invalid post link.")
+            print("Invalid post or video link.")
             return None
         return post_id
     except IndexError:
-        print("Could not extract post ID.")
+        print("Could not extract post or video ID.")
         return None
 
 def get_user_name():
@@ -28,11 +30,11 @@ def comment_on_facebook_post():
     
     # Ask for the number of comments the user wants to make
     num_comments = int(input("How many comments do you want to make? "))
-    post_link = input('Enter the Facebook post link: ')
+    post_link = input('Enter the Facebook post or video link: ')
     post_id = linktradio(post_link)
 
     if post_id is None:
-        print("Could not extract post ID. Exiting.")
+        print("Could not extract post or video ID. Exiting.")
         return
 
     # Prompt user to enter the number of comment scripts

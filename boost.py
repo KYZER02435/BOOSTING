@@ -76,7 +76,7 @@ def main_menu():
     print("[12] Auto Comments for Videos")
     print("[13] Spam Shares")
     print("[14] Bundle Reactions")
-    print("[15] Auto Comment For Post(EASY WAY FOR DIFFERENT COMMENTS")
+    print("[15] Auto Comment For Post & Vid(EASY WAY FOR DIFFERENT COMMENTS")
     print("[C] AUTO REMOVE DEAD ACCOUNTS")
     print("[RDP] REMOVE DUPLICATE ACCOUNTS")
     print("[R] Reset")

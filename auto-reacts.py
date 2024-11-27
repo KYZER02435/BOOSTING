@@ -1,5 +1,6 @@
-import requests, json, time, uuid, base64, re, threading
-from rich import print  # Import the print function from rich
+import requests, json, time, uuid, base64, re, threading, random
+from rich import print
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 r = "[bold red]"
 g = "[bold green]"
@@ -8,9 +9,20 @@ g = "[bold green]"
 successful_reactions = 0
 counter_lock = threading.Lock()
 
+def generate_user_agent():
+    fbav = f"{random.randint(100, 999)}.0.0.{random.randint(11, 99)}.{random.randint(100, 999)}"
+    fbbv = random.randint(100000000, 999999999)
+    fbca = random.choice(["armeabi-v7a:armeabi", "arm64-v8a:armeabi", "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"])
+    fban = "FB4A"
+    fbpv = f"Windows NT {random.randint(10, 12)}.0"
+    return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
+
 def AutoReact():
     def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
         rui = requests.Session()
+        user_agent = generate_user_agent()
+        rui.headers.update({"User-Agent": user_agent})
+        
         feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
         var = {
             "input": {
@@ -59,7 +71,8 @@ def AutoReact():
         global successful_reactions
         if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
             with counter_lock:
-                successful_reactions += 1
+                if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+                    successful_reactions += 1
 
     def choose_reaction():
         print("Please choose the reaction you want to use.\n")
@@ -151,18 +164,17 @@ def AutoReact():
     
     react = choose_reaction()
     if react:
+        global react_count  # Declare react_count as global to track its usage
         react_count = int(input("How many reactions do you want to send? "))
-        threads = []
+        
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [
+                executor.submit(process_reaction, actor_id, token, post_id, react)
+                for actor_id, token in zip(actor_ids, tokens)
+            ][:react_count]
 
-        for actor_id, token in zip(actor_ids, tokens):
-            if len(threads) >= react_count:
-                break
-            t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react))
-            threads.append(t)
-            t.start()
-
-        for t in threads:
-            t.join()
+            for future in as_completed(futures):
+                future.result()
 
         print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
     else:

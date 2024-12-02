@@ -53,7 +53,7 @@ class ShareManager:
                 self.queue.put(token)
 
             threads = []
-            for _ in range(min(10, len(self.tokens))):  # Limit to 10 concurrent threads
+            for _ in range(min(30, len(self.tokens))):  # Limit to 10 concurrent threads
                 thread = threading.Thread(target=self.worker)
                 threads.append(thread)
                 thread.start()

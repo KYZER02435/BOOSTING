@@ -15,15 +15,29 @@ def generate_user_agent():
     fbca = random.choice(["armeabi-v7a:armeabi", "arm64-v8a:armeabi", "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"])
     fban = "FB4A"
     fbpv = f"Windows NT {random.randint(10, 12)}.0"
-    fbsv = f"{random.randint(10, 15)}.{random.randint(0, 5)}"
-    return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca};FBSV/{fbsv}]"
+    return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
+
+def get_ids_tokens(file_path):
+    """
+    Reads actor IDs or tokens from a file.
+    Each line in the file should contain one ID or token.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            return [line.strip() for line in file.readlines()]
+    except FileNotFoundError:
+        print(f"{r}Error: File not found at {file_path}")
+        return []
+    except Exception as e:
+        print(f"{r}Error reading file: {e}")
+        return []
 
 def AutoReact():
     def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
         rui = requests.Session()
         user_agent = generate_user_agent()
         rui.headers.update({"User-Agent": user_agent})
-
+        
         feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
         var = {
             "input": {
@@ -54,7 +68,6 @@ def AutoReact():
         }
 
         pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
-        time.sleep(random.uniform(2, 5))  # Random delay to mimic human behavior
         try:
             if react == '0':
                 print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
@@ -71,41 +84,72 @@ def AutoReact():
 
     def process_reaction(actor_id, token, post_id, react):
         global successful_reactions
-        with counter_lock:
-            if successful_reactions >= react_count:  # Stop further reactions if limit is reached
-                return
-        time.sleep(random.uniform(1, 3))  # Random delay before each reaction
+        if successful_reactions >= react_count:
+            return  # Stop processing if successful reactions reach the limit
         if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
             with counter_lock:
                 if successful_reactions < react_count:
                     successful_reactions += 1
 
-    # Rest of your unchanged code...
+    def choose_reaction():
+        print("Please choose the reaction you want to use.\n")
+        reactions = {
+            '1': 'Like',
+            '2': 'Love',
+            '3': 'Haha',
+            '4': 'Wow',
+            '5': 'Care',
+            '6': 'Sad',
+            '7': 'Angry',
+            '8': 'Remove Reaction'
+        }
+        for key, value in reactions.items():
+            print(f"     「{key}」 {value}")
+        
+        rec = input('Choose a reaction: ')
+        reaction_ids = {
+            '1': '1635855486666999',
+            '2': '1678524932434102',
+            '3': '115940658764963',
+            '4': '478547315650144',
+            '5': '613557422527858',
+            '6': '908563459236466',
+            '7': '444813342392137',
+            '8': '0'
+        }
+        return reaction_ids.get(rec)
+
+    def linktradio(post_link: str) -> str:
+        patterns = [
+            r'/posts/(\w+)',
+            r'/videos/(\w+)',
+            r'/groups/(\d+)/permalink/(\d+)',
+            r'/reels/(\w+)',
+            r'/live/(\w+)',
+            r'/photos/(\w+)',
+            r'/permalink/(\w+)',
+            r'story_fbid=(\w+)',
+            r'fbid=(\d+)'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, post_link)
+            if match:
+                if pattern == r'/groups/(\d+)/permalink/(\d+)':
+                    return match.group(2)
+                return match.group(1)
+        
+        print("Invalid post link or format")
+        return None
 
     actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
     tokens = get_ids_tokens('/sdcard/Test/toka.txt')
     
-    choice = choose_type()
-    
-    if choice == '1':
-        post_link = input('Enter the Facebook post link: ')
-        post_id = linktradio(post_link)
-    elif choice == '2':
-        post_link = input('Enter the Facebook group post link: ')
-        post_id = linktradio(post_link)
-    elif choice == '3':
-        post_link = input('Enter the Facebook video post link: ')
-        post_id = linktradio(post_link)
-    elif choice == '4':
-        post_link = input('Enter the Facebook photo post link: ')
-        post_id = linktradio(post_link)
-    else:
-        print('Invalid choice.')
-        return
-
+    post_link = input('Enter the Facebook post link: ')
+    post_id = linktradio(post_link)
     if not post_id:
         return
-    
+
     react = choose_reaction()
     if react:
         global react_count  # Declare react_count as global to track its usage
@@ -118,13 +162,11 @@ def AutoReact():
             ]
 
             for future in as_completed(futures):
-                if successful_reactions >= react_count:  # Exit early if limit is reached
-                    break
                 future.result()
 
-        print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
+        print(f"{g}{successful_reactions} successful reactions sent! You're awesome![/bold green]")
     else:
-        print('[bold red]Invalid reaction option.[/bold red]')
+        print(f"{r}Invalid reaction option.[/bold red]")
 
 # Run the AutoReact script
 AutoReact()

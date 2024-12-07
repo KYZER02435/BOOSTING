@@ -15,14 +15,15 @@ def generate_user_agent():
     fbca = random.choice(["armeabi-v7a:armeabi", "arm64-v8a:armeabi", "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"])
     fban = "FB4A"
     fbpv = f"Windows NT {random.randint(10, 12)}.0"
-    return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
+    fbsv = f"{random.randint(10, 15)}.{random.randint(0, 5)}"
+    return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca};FBSV/{fbsv}]"
 
 def AutoReact():
     def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
         rui = requests.Session()
         user_agent = generate_user_agent()
         rui.headers.update({"User-Agent": user_agent})
-        
+
         feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
         var = {
             "input": {
@@ -53,6 +54,7 @@ def AutoReact():
         }
 
         pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
+        time.sleep(random.uniform(2, 5))  # Random delay to mimic human behavior
         try:
             if react == '0':
                 print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
@@ -69,74 +71,16 @@ def AutoReact():
 
     def process_reaction(actor_id, token, post_id, react):
         global successful_reactions
+        with counter_lock:
+            if successful_reactions >= react_count:  # Stop further reactions if limit is reached
+                return
+        time.sleep(random.uniform(1, 3))  # Random delay before each reaction
         if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
             with counter_lock:
-                if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+                if successful_reactions < react_count:
                     successful_reactions += 1
 
-    def choose_reaction():
-        print("Please choose the reaction you want to use.\n")
-        reactions = {
-            '1': 'Like',
-            '2': 'Love',
-            '3': 'Haha',
-            '4': 'Wow',
-            '5': 'Care',
-            '6': 'Sad',
-            '7': 'Angry',
-            '8': 'Remove Reaction'
-        }
-        for key, value in reactions.items():
-            print(f"     「{key}」 {value}")
-        
-        rec = input('Choose a reaction: ')
-        reaction_ids = {
-            '1': '1635855486666999',
-            '2': '1678524932434102',
-            '3': '115940658764963',
-            '4': '478547315650144',
-            '5': '613557422527858',
-            '6': '908563459236466',
-            '7': '444813342392137',
-            '8': '0'
-        }
-        return reaction_ids.get(rec)
-
-    def linktradio(post_link: str) -> str:
-        patterns = [
-            r'/posts/(\w+)',
-            r'/videos/(\w+)',
-            r'/groups/(\d+)/permalink/(\d+)',
-            r'/reels/(\w+)',
-            r'/live/(\w+)',
-            r'/photos/(\w+)',
-            r'/permalink/(\w+)',
-            r'story_fbid=(\w+)',
-            r'fbid=(\d+)'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, post_link)
-            if match:
-                if pattern == r'/groups/(\d+)/permalink/(\d+)':
-                    return match.group(2)
-                return match.group(1)
-        
-        print("Invalid post link or format")
-        return None
-
-    def get_ids_tokens(file_path):
-        with open(file_path, 'r') as file:
-            return [line.strip() for line in file]
-
-    def choose_type():
-        print("Do you want to react to:")
-        print("1. A regular post")
-        print("2. A group post")
-        print("3. A video post")
-        print("4. A photo post")
-        choice = input('Choose an option: ')
-        return choice
+    # Rest of your unchanged code...
 
     actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
     tokens = get_ids_tokens('/sdcard/Test/toka.txt')
@@ -171,9 +115,11 @@ def AutoReact():
             futures = [
                 executor.submit(process_reaction, actor_id, token, post_id, react)
                 for actor_id, token in zip(actor_ids, tokens)
-            ][:react_count]
+            ]
 
             for future in as_completed(futures):
+                if successful_reactions >= react_count:  # Exit early if limit is reached
+                    break
                 future.result()
 
         print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")

@@ -61,7 +61,7 @@ def AutoReact():
             else:
                 print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
                 return False
-        except requests.exceptions.JSONDecodeError as e:
+        except json.JSONDecodeError as e:
             print(f"{r}JSONDecodeError: {e}")
         except requests.exceptions.RequestException as e:
             print(f"{r}RequestException: {e}")

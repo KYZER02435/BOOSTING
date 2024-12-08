@@ -1,13 +1,11 @@
-import requests, json, time, uuid, base64, re, threading, random
+import requests, json, time, uuid, base64, re, random
 from rich import print
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 r = "[bold red]"
 g = "[bold green]"
 
 # Thread-safe counter for successful reactions
 successful_reactions = 0
-counter_lock = threading.Lock()
 
 def generate_user_agent():
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(11, 99)}.{random.randint(100, 999)}"
@@ -66,14 +64,6 @@ def AutoReact():
         except Exception:
             print(f"{r}Reaction failed due to an error.")
             return False
-
-    def process_reaction(actor_id, token, post_id, react):
-        global successful_reactions
-        time.sleep(random.uniform(1, 3))  # Random delay between 1 to 3 seconds
-        if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-            with counter_lock:
-                if successful_reactions < react_count:
-                    successful_reactions += 1
 
     def choose_reaction():
         print("Please choose the reaction you want to use.\n")
@@ -165,20 +155,16 @@ def AutoReact():
     
     react = choose_reaction()
     if react:
-        global react_count  # Declare react_count as global to track its usage
         react_count = int(input("How many reactions do you want to send? "))
+        successful_reactions = 0  # Reset the counter
         
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = []
-            for actor_id, token in zip(actor_ids, tokens):
-                if successful_reactions >= react_count:
-                    break
-                futures.append(executor.submit(process_reaction, actor_id, token, post_id, react))
-
-            for future in as_completed(futures):
-                if successful_reactions >= react_count:
-                    break
-                future.result()
+        for actor_id, token in zip(actor_ids, tokens):
+            if successful_reactions >= react_count:
+                break
+            if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+                successful_reactions += 1
+                # Adding a human-like delay between reactions
+                time.sleep(random.uniform(1, 3))  # Simulating a random delay between 1 and 3 seconds
 
         print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
     else:

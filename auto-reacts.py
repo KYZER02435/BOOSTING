@@ -50,8 +50,8 @@ def AutoReact():
             'client_trace_id': str(uuid.uuid4())
         }
 
-        pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
         try:
+            pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
             if react == '0':
                 print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
                 return True
@@ -61,9 +61,13 @@ def AutoReact():
             else:
                 print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
                 return False
-        except Exception:
-            print(f"{r}Reaction failed due to an error.")
-            return False
+        except requests.exceptions.JSONDecodeError as e:
+            print(f"{r}JSONDecodeError: {e}")
+        except requests.exceptions.RequestException as e:
+            print(f"{r}RequestException: {e}")
+        except Exception as e:
+            print(f"{r}An unexpected error occurred: {e}")
+        return False
 
     def choose_reaction():
         print("Please choose the reaction you want to use.\n")

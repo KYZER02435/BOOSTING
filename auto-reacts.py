@@ -69,6 +69,7 @@ def AutoReact():
 
     def process_reaction(actor_id, token, post_id, react):
         global successful_reactions
+        time.sleep(random.uniform(1, 3))  # Random delay between 1 to 3 seconds
         if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
             with counter_lock:
                 if successful_reactions < react_count:

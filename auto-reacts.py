@@ -52,7 +52,6 @@ def AutoReact():
             'client_trace_id': str(uuid.uuid4())
         }
 
-        time.sleep(random.uniform(1, 3))  # Introduce random delay to mimic human behavior
         pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
         try:
             if react == '0':
@@ -165,16 +164,19 @@ def AutoReact():
     
     react = choose_reaction()
     if react:
-        global react_count
+        global react_count  # Declare react_count as global to track its usage
         react_count = int(input("How many reactions do you want to send? "))
         
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            futures = [
-                executor.submit(process_reaction, actor_id, token, post_id, react)
-                for actor_id, token in zip(actor_ids, tokens)
-            ][:react_count]
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = []
+            for actor_id, token in zip(actor_ids, tokens):
+                if successful_reactions >= react_count:
+                    break
+                futures.append(executor.submit(process_reaction, actor_id, token, post_id, react))
 
             for future in as_completed(futures):
+                if successful_reactions >= react_count:
+                    break
                 future.result()
 
         print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")

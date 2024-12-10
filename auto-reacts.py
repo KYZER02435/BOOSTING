@@ -6,7 +6,7 @@ import base64
 import re
 import random
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed  # Fix: Import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from rich import print
 
 # Color definitions
@@ -42,74 +42,67 @@ def generate_user_agent():
     fbpv = f"Windows NT {random.randint(10, 12)}.0"
     return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
 
-def AutoReact():
-    proxies = fetch_proxies()
-    if not proxies:
-        print(f"{r}No proxies available. Exiting.")
-        return
+def Reaction(actor_id: str, post_id: str, react: str, token: str, react_count: int) -> bool:
+    """Send a reaction request."""
+    global successful_reactions
+    rui = requests.Session()
+    user_agent = generate_user_agent()
+    rui.headers.update({"User-Agent": user_agent})
 
-    def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
-        rui = requests.Session()
-        user_agent = generate_user_agent()
-        rui.headers.update({"User-Agent": user_agent})
-
-        proxy = get_random_proxy(proxies)
-        if proxy:
-            rui.proxies.update({
-                "http": f"http://{proxy}",
-                "https": f"http://{proxy}"
-            })
-
-        feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
-        var = {
-            "input": {
-                "feedback_referrer": "native_newsfeed",
-                "tracking": [None],
-                "feedback_id": feedback_id,
-                "client_mutation_id": str(uuid.uuid4()),
-                "nectar_module": "newsfeed_ufi",
-                "feedback_source": "native_newsfeed",
-                "feedback_reaction_id": react,
-                "actor_id": actor_id,
-                "action_timestamp": str(time.time())[:10]
-            }
+    feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
+    var = {
+        "input": {
+            "feedback_referrer": "native_newsfeed",
+            "tracking": [None],
+            "feedback_id": feedback_id,
+            "client_mutation_id": str(uuid.uuid4()),
+            "nectar_module": "newsfeed_ufi",
+            "feedback_source": "native_newsfeed",
+            "feedback_reaction_id": react,
+            "actor_id": actor_id,
+            "action_timestamp": str(time.time())[:10]
         }
-        data = {
-            'access_token': token,
-            'pretty': False,
-            'format': 'json',
-            'server_timestamps': True,
-            'locale': 'id_ID',
-            'fb_api_req_friendly_name': 'ViewerReactionsMutation',
-            'fb_api_caller_class': 'graphservice',
-            'client_doc_id': '2857784093518205785115255697',
-            'variables': json.dumps(var),
-            'fb_api_analytics_tags': ["GraphServices"],
-            'client_trace_id': str(uuid.uuid4())
-        }
+    }
+    data = {
+        'access_token': token,
+        'pretty': False,
+        'format': 'json',
+        'server_timestamps': True,
+        'locale': 'id_ID',
+        'fb_api_req_friendly_name': 'ViewerReactionsMutation',
+        'fb_api_caller_class': 'graphservice',
+        'client_doc_id': '2857784093518205785115255697',
+        'variables': json.dumps(var),
+        'fb_api_analytics_tags': ["GraphServices"],
+        'client_trace_id': str(uuid.uuid4())
+    }
 
-        try:
-            pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
-            if react == '0':
-                print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
-                return True
-            elif react in str(pos):
-                print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
-                return True
-            else:
-                print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
-                return False
-        except requests.exceptions.RequestException as e:
-            print(f"{r}Reaction failed due to an error: {e}")
-            return False
-
-    def process_reaction(actor_id, token, post_id, react):
-        global successful_reactions
-        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
-            if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-                with counter_lock:
+    try:
+        pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
+        if react == '0':
+            print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
+            return True
+        elif react in str(pos):
+            with counter_lock:
+                if successful_reactions < react_count:
                     successful_reactions += 1
+                    print(f"{g}「Success」» Reacted with {actor_id} to {post_id} ({successful_reactions}/{react_count})")
+            return True
+        else:
+            print(f"{r}「Failed」» Reacted with {actor_id} to {post_id}")
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"{r}Reaction failed due to an error: {e}")
+        return False
 
+def process_reaction(actor_id, token, post_id, react, react_count):
+    """Process a reaction and stop when the target is reached."""
+    global successful_reactions
+    if successful_reactions < react_count:
+        Reaction(actor_id, post_id, react, token, react_count)
+
+def AutoReact():
+    """Main function to handle auto-reactions."""
     def choose_reaction():
         print("Please choose the reaction you want to use.\n")
         reactions = {
@@ -138,61 +131,32 @@ def AutoReact():
         }
         return reaction_ids.get(rec)
 
-    def linktradio(post_link: str) -> str:
-        patterns = [
-            r'/posts/(\w+)',
-            r'/videos/(\w+)',
-            r'/groups/(\d+)/permalink/(\d+)',
-            r'/reels/(\w+)',
-            r'/live/(\w+)',
-            r'/photos/(\w+)',
-            r'/permalink/(\w+)',
-            r'story_fbid=(\w+)',
-            r'fbid=(\d+)'
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, post_link)
-            if match:
-                if pattern == r'/groups/(\d+)/permalink/(\d+)':
-                    return match.group(2)
-                return match.group(1)
-        
-        print("Invalid post link or format")
-        return None
-
     def get_ids_tokens(file_path):
+        """Retrieve IDs or tokens from a file."""
         with open(file_path, 'r') as file:
             return [line.strip() for line in file]
 
     actor_ids = get_ids_tokens('/sdcard/TEST-BOOSTING/TOKENS.txt')
     tokens = get_ids_tokens('/sdcard/TEST-BOOSTING/IDS.txt')
-    
+
     post_link = input('Enter the Facebook post link: ')
-    post_id = linktradio(post_link)
-    
+    post_id = re.search(r'/posts/(\w+)', post_link)
     if not post_id:
+        print(f"{r}Invalid post link.")
         return
-    
+    post_id = post_id.group(1)
+
     react = choose_reaction()
     if react:
-        global react_count
         react_count = int(input("How many successful reactions do you want to send? "))
-        
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            futures = [
-                executor.submit(process_reaction, actor_id, token, post_id, react)
-                for actor_id, token in zip(actor_ids, tokens)
-            ]
-
-            for future in as_completed(futures):
-                future.result()
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            for actor_id, token in zip(actor_ids, tokens):
+                executor.submit(process_reaction, actor_id, token, post_id, react, react_count)
                 if successful_reactions >= react_count:
+                    print(f"{g}Target of {react_count} successful reactions reached!")
                     break
-
-        print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
     else:
-        print('[bold red]Invalid reaction option.[/bold red]')
+        print(f"{r}Invalid reaction option.")
 
 # Run the AutoReact script
 AutoReact()

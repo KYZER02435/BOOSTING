@@ -96,8 +96,8 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
 
 def process_reaction(actor_id, token, post_id, react):
     global successful_reactions
-    if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+    if successful_reactions < react_count:  # Ensure we don't exceed the desired number of reactions
+        if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
             successful_reactions += 1
 
 def choose_reaction():
@@ -155,8 +155,8 @@ def get_ids_tokens(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file]
 
-actor_ids = get_ids_tokens('/sdcard/TEST-BOOSTING/TOKENS.txt')
-tokens = get_ids_tokens('/sdcard/TEST-BOOSTING/IDS.txt')
+actor_ids = get_ids_tokens('/sdcard/Test/tokid.txt')
+tokens = get_ids_tokens('/sdcard/Test/toka.txt')
 
 post_link = input('Enter the Facebook post link: ')
 post_id = linktradio(post_link)
@@ -170,6 +170,8 @@ if react:
     react_count = int(input("How many reactions do you want to send? "))
     
     for actor_id, token in zip(actor_ids, tokens):
+        if successful_reactions >= react_count:  # Stop if the limit is reached
+            break
         process_reaction(actor_id, token, post_id, react)
 
     print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")

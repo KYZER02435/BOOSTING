@@ -96,3 +96,88 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
     except requests.exceptions.RequestException as req_error:
         print(f"{r}Reaction failed due to an error: {req_error}")
         return False
+
+def process_reaction(actor_id, token, post_id, react):
+    global successful_reactions
+    if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+            successful_reactions += 1
+
+def choose_reaction():
+    print("Please choose the reaction you want to use.\n")
+    reactions = {
+        '1': 'Like',
+        '2': 'Love',
+        '3': 'Haha',
+        '4': 'Wow',
+        '5': 'Care',
+        '6': 'Sad',
+        '7': 'Angry',
+        '8': 'Remove Reaction'
+    }
+    for key, value in reactions.items():
+        print(f"     「{key}」 {value}")
+    
+    rec = input('Choose a reaction: ')
+    reaction_ids = {
+        '1': '1635855486666999',
+        '2': '1678524932434102',
+        '3': '115940658764963',
+        '4': '478547315650144',
+        '5': '613557422527858',
+        '6': '908563459236466',
+        '7': '444813342392137',
+        '8': '0'
+    }
+    return reaction_ids.get(rec)
+
+def linktradio(post_link: str) -> str:
+    patterns = [
+        r'/posts/(\w+)',
+        r'/videos/(\w+)',
+        r'/groups/(\d+)/permalink/(\d+)',
+        r'/reels/(\w+)',
+        r'/live/(\w+)',
+        r'/photos/(\w+)',
+        r'/permalink/(\w+)',
+        r'story_fbid=(\w+)',
+        r'fbid=(\d+)'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, post_link)
+        if match:
+            if pattern == r'/groups/(\d+)/permalink/(\d+)':
+                return match.group(2)
+            return match.group(1)
+    
+    print("Invalid post link or format")
+    return None
+
+def get_ids_tokens(file_path):
+    with open(file_path, 'r') as file:
+        return [line.strip() for line in file]
+
+try:
+    actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
+    tokens = get_ids_tokens('/sdcard/Test/toka.txt')
+
+    post_link = input('Enter the Facebook post link: ')
+    post_id = linktradio(post_link)
+
+    if not post_id:
+        exit()
+
+    react = choose_reaction()
+    if react:
+        global react_count
+        react_count = int(input("How many reactions do you want to send? "))
+        
+        for actor_id, token in zip(actor_ids, tokens):
+            process_reaction(actor_id, token, post_id, react)
+
+        print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
+    else:
+        print('[bold red]Invalid reaction option.[/bold red]')
+except Exception as e:
+    print(f"{r}An unexpected error occurred: {e}")

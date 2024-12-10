@@ -16,7 +16,7 @@ successful_reactions = 0
 
 def fetch_proxies():
     """Fetch proxies from ProxyScrape and return as a list."""
-    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=100&country=all&ssl=all&anonymity=all"
+    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=1&country=all&ssl=all&anonymity=all"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -155,8 +155,8 @@ def get_ids_tokens(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file]
 
-actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
-tokens = get_ids_tokens('/sdcard/Test/toka.txt')
+actor_ids = get_ids_tokens('/sdcard/TEST-BOOSTING/TOKENS.txt')
+tokens = get_ids_tokens('/sdcard/TEST-BOOSTING/IDS.txt')
 
 post_link = input('Enter the Facebook post link: ')
 post_id = linktradio(post_link)
@@ -170,8 +170,6 @@ if react:
     react_count = int(input("How many reactions do you want to send? "))
     
     for actor_id, token in zip(actor_ids, tokens):
-        if successful_reactions >= react_count:  # Stop if the target is reached
-            break
         process_reaction(actor_id, token, post_id, react)
 
     print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")

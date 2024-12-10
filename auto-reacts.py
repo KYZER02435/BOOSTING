@@ -36,9 +36,8 @@ def generate_user_agent():
     fbpv = f"Windows NT {random.randint(10, 12)}.0"
     return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
 
-def Reaction(actor_id: str, post_id: str, react: str, token: str, react_count: int) -> bool:
+def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
     """Send a reaction request."""
-    global successful_reactions
     rui = requests.Session()
     user_agent = generate_user_agent()
     rui.headers.update({"User-Agent": user_agent})
@@ -77,10 +76,7 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str, react_count: i
             print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
             return True
         elif react in str(pos):
-            with counter_lock:
-                if successful_reactions < react_count:
-                    successful_reactions += 1
-                    print(f"{g}「Success」» Reacted with {actor_id} to {post_id} ({successful_reactions}/{react_count})")
+            print(f"{g}「Success」» Reacted with {actor_id} to {post_id}")
             return True
         else:
             print(f"{r}「Failed」» Reacted with {actor_id} to {post_id}")
@@ -92,12 +88,13 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str, react_count: i
 def process_reaction(actor_id, token, post_id, react, react_count):
     """Process a reaction and stop when the target is reached."""
     global successful_reactions
-    if successful_reactions < react_count:
-        if Reaction(actor_id, post_id, react, token, react_count):  # Only proceed if successful
+    while successful_reactions < react_count:
+        if Reaction(actor_id, post_id, react, token):  # Increment only on success
             with counter_lock:
+                successful_reactions += 1
                 if successful_reactions >= react_count:
                     print(f"{g}Target of {react_count} successful reactions reached!")
-                    return
+                    break
 
 def AutoReact():
     """Main function to handle auto-reactions."""
@@ -150,9 +147,8 @@ def AutoReact():
         with ThreadPoolExecutor(max_workers=5) as executor:
             for actor_id, token in zip(actor_ids, tokens):
                 executor.submit(process_reaction, actor_id, token, post_id, react, react_count)
-                with counter_lock:
-                    if successful_reactions >= react_count:
-                        break
+                if successful_reactions >= react_count:
+                    break
     else:
         print(f"{r}Invalid reaction option.")
 

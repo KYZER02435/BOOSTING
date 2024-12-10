@@ -11,9 +11,11 @@ from rich import print
 r = "[bold red]"
 g = "[bold green]"
 
+# Thread-safe counter for successful reactions
 successful_reactions = 0
 
 def fetch_proxies():
+    """Fetch proxies from ProxyScrape and return as a list."""
     url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=100&country=all&ssl=all&anonymity=all"
     try:
         response = requests.get(url, timeout=10)
@@ -24,6 +26,7 @@ def fetch_proxies():
         return []
 
 def get_random_proxy(proxies):
+    """Get a random proxy from the list."""
     if proxies:
         return random.choice(proxies)
     return None
@@ -77,62 +80,7 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
     }
 
     try:
-        pos = rui.post('https://graph.facebook.com/graphql', data=data)
-        response_text = pos.text  # Capture raw response for debugging
-        pos = pos.json()  # Parse response as JSON
-
-        if react == '0':
-            print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
-            return True
-        elif react in str(pos):
-            print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
-            return True
-def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
-    rui = requests.Session()
-    user_agent = generate_user_agent()
-    rui.headers.update({"User-Agent": user_agent})
-
-    proxy = get_random_proxy(fetch_proxies())
-    if proxy:
-        rui.proxies.update({
-            "http": f"http://{proxy}",
-            "https": f"http://{proxy}"
-        })
-
-    feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
-    var = {
-        "input": {
-            "feedback_referrer": "native_newsfeed",
-            "tracking": [None],
-            "feedback_id": feedback_id,
-            "client_mutation_id": str(uuid.uuid4()),
-            "nectar_module": "newsfeed_ufi",
-            "feedback_source": "native_newsfeed",
-            "feedback_reaction_id": react,
-            "actor_id": actor_id,
-            "action_timestamp": str(time.time())[:10]
-        }
-    }
-    data = {
-        'access_token': token,
-        'pretty': False,
-        'format': 'json',
-        'server_timestamps': True,
-        'locale': 'id_ID',
-        'fb_api_req_friendly_name': 'ViewerReactionsMutation',
-        'fb_api_caller_class': 'graphservice',
-        'client_doc_id': '2857784093518205785115255697',
-        'variables': json.dumps(var),
-        'fb_api_analytics_tags': ["GraphServices"],
-        'client_trace_id': str(uuid.uuid4())
-    }
-
-    response_text = None  # Initialize response_text
-    try:
-        pos = rui.post('https://graph.facebook.com/graphql', data=data)
-        response_text = pos.text  # Capture raw response for debugging
-        pos = pos.json()  # Parse response as JSON
-
+        pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
         if react == '0':
             print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
             return True
@@ -142,11 +90,8 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
         else:
             print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
             return False
-    except ValueError as json_error:
-        print(f"{r}Reaction failed: Could not parse response. Raw response: {response_text}")
-        return False
-    except requests.exceptions.RequestException as req_error:
-        print(f"{r}Reaction failed due to an error: {req_error}")
+    except requests.exceptions.RequestException as e:
+        print(f"{r}Reaction failed due to an error: {e}")
         return False
 
 def process_reaction(actor_id, token, post_id, react):
@@ -210,26 +155,23 @@ def get_ids_tokens(file_path):
     with open(file_path, 'r') as file:
         return [line.strip() for line in file]
 
-try:
-    actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
-    tokens = get_ids_tokens('/sdcard/Test/toka.txt')
+actor_ids = get_ids_tokens('/sdcard/Test/tokaid.txt')
+tokens = get_ids_tokens('/sdcard/Test/toka.txt')
 
-    post_link = input('Enter the Facebook post link: ')
-    post_id = linktradio(post_link)
+post_link = input('Enter the Facebook post link: ')
+post_id = linktradio(post_link)
 
-    if not post_id:
-        exit()
+if not post_id:
+    exit()
 
-    react = choose_reaction()
-    if react:
-        global react_count
-        react_count = int(input("How many reactions do you want to send? "))
-        
-        for actor_id, token in zip(actor_ids, tokens):
-            process_reaction(actor_id, token, post_id, react)
+react = choose_reaction()
+if react:
+    global react_count
+    react_count = int(input("How many reactions do you want to send? "))
+    
+    for actor_id, token in zip(actor_ids, tokens):
+        process_reaction(actor_id, token, post_id, react)
 
-        print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
-    else:
-        print('[bold red]Invalid reaction option.[/bold red]')
-except Exception as e:
-    print(f"{r}An unexpected error occurred: {e}")
+    print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
+else:
+    print('[bold red]Invalid reaction option.[/bold red]')

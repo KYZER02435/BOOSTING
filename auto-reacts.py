@@ -16,7 +16,7 @@ successful_reactions = 0
 
 def fetch_proxies():
     """Fetch proxies from ProxyScrape and return as a list."""
-    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=1000&country=all&ssl=all&anonymity=all"
+    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=100&country=all&ssl=all&anonymity=all"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()

@@ -144,7 +144,7 @@ def AutoReact():
     react = choose_reaction()
     if react:
         react_count = int(input("How many successful reactions do you want to send? "))
-        with ThreadPoolExecutor(max_workers=5) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             for actor_id, token in zip(actor_ids, tokens):
                 executor.submit(process_reaction, actor_id, token, post_id, react, react_count)
                 if successful_reactions >= react_count:

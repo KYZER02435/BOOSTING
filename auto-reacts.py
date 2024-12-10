@@ -28,12 +28,6 @@ def fetch_proxies():
         print(f"{r}Failed to fetch proxies: {e}")
         return []
 
-def get_random_proxy(proxies):
-    """Get a random proxy from the list."""
-    if proxies:
-        return random.choice(proxies)
-    return None
-
 def generate_user_agent():
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(11, 99)}.{random.randint(100, 999)}"
     fbbv = random.randint(100000000, 999999999)
@@ -99,7 +93,11 @@ def process_reaction(actor_id, token, post_id, react, react_count):
     """Process a reaction and stop when the target is reached."""
     global successful_reactions
     if successful_reactions < react_count:
-        Reaction(actor_id, post_id, react, token, react_count)
+        if Reaction(actor_id, post_id, react, token, react_count):  # Only proceed if successful
+            with counter_lock:
+                if successful_reactions >= react_count:
+                    print(f"{g}Target of {react_count} successful reactions reached!")
+                    return
 
 def AutoReact():
     """Main function to handle auto-reactions."""
@@ -149,12 +147,12 @@ def AutoReact():
     react = choose_reaction()
     if react:
         react_count = int(input("How many successful reactions do you want to send? "))
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=5) as executor:
             for actor_id, token in zip(actor_ids, tokens):
                 executor.submit(process_reaction, actor_id, token, post_id, react, react_count)
-                if successful_reactions >= react_count:
-                    print(f"{g}Target of {react_count} successful reactions reached!")
-                    break
+                with counter_lock:
+                    if successful_reactions >= react_count:
+                        break
     else:
         print(f"{r}Invalid reaction option.")
 

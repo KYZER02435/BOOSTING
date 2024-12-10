@@ -5,8 +5,6 @@ import uuid
 import base64
 import re
 import random
-import threading
-from concurrent.futures import ThreadPoolExecutor
 from rich import print
 
 # Color definitions
@@ -15,7 +13,6 @@ g = "[bold green]"
 
 # Thread-safe counter for successful reactions
 successful_reactions = 0
-counter_lock = threading.Lock()
 
 def fetch_proxies():
     """Fetch proxies from ProxyScrape and return as a list."""
@@ -28,6 +25,12 @@ def fetch_proxies():
         print(f"{r}Failed to fetch proxies: {e}")
         return []
 
+def get_random_proxy(proxies):
+    """Get a random proxy from the list."""
+    if proxies:
+        return random.choice(proxies)
+    return None
+
 def generate_user_agent():
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(11, 99)}.{random.randint(100, 999)}"
     fbbv = random.randint(100000000, 999999999)
@@ -37,10 +40,16 @@ def generate_user_agent():
     return f"Dalvik/2.1.0 (Linux; U; {fbpv}; {fban} Build/{fbbv}) [FBAN/{fban};FBAV/{fbav};FBBV/{fbbv};FBCA/{fbca}]"
 
 def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
-    """Send a reaction request."""
     rui = requests.Session()
     user_agent = generate_user_agent()
     rui.headers.update({"User-Agent": user_agent})
+
+    proxy = get_random_proxy(fetch_proxies())
+    if proxy:
+        rui.proxies.update({
+            "http": f"http://{proxy}",
+            "https": f"http://{proxy}"
+        })
 
     feedback_id = str(base64.b64encode(f'feedback:{post_id}'.encode('utf-8')).decode('utf-8'))
     var = {
@@ -76,81 +85,93 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
             print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
             return True
         elif react in str(pos):
-            print(f"{g}「Success」» Reacted with {actor_id} to {post_id}")
+            print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
             return True
         else:
-            print(f"{r}「Failed」» Reacted with {actor_id} to {post_id}")
+            print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
             return False
     except requests.exceptions.RequestException as e:
         print(f"{r}Reaction failed due to an error: {e}")
         return False
 
-def process_reaction(actor_id, token, post_id, react, react_count):
-    """Process a reaction and stop when the target is reached."""
+def process_reaction(actor_id, token, post_id, react):
     global successful_reactions
-    while successful_reactions < react_count:
-        if Reaction(actor_id, post_id, react, token):  # Increment only on success
-            with counter_lock:
-                successful_reactions += 1
-                if successful_reactions >= react_count:
-                    print(f"{g}Target of {react_count} successful reactions reached!")
-                    break
+    if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+            successful_reactions += 1
 
-def AutoReact():
-    """Main function to handle auto-reactions."""
-    def choose_reaction():
-        print("Please choose the reaction you want to use.\n")
-        reactions = {
-            '1': 'Like',
-            '2': 'Love',
-            '3': 'Haha',
-            '4': 'Wow',
-            '5': 'Care',
-            '6': 'Sad',
-            '7': 'Angry',
-            '8': 'Remove Reaction'
-        }
-        for key, value in reactions.items():
-            print(f"     「{key}」 {value}")
-        
-        rec = input('Choose a reaction: ')
-        reaction_ids = {
-            '1': '1635855486666999',
-            '2': '1678524932434102',
-            '3': '115940658764963',
-            '4': '478547315650144',
-            '5': '613557422527858',
-            '6': '908563459236466',
-            '7': '444813342392137',
-            '8': '0'
-        }
-        return reaction_ids.get(rec)
+def choose_reaction():
+    print("Please choose the reaction you want to use.\n")
+    reactions = {
+        '1': 'Like',
+        '2': 'Love',
+        '3': 'Haha',
+        '4': 'Wow',
+        '5': 'Care',
+        '6': 'Sad',
+        '7': 'Angry',
+        '8': 'Remove Reaction'
+    }
+    for key, value in reactions.items():
+        print(f"     「{key}」 {value}")
+    
+    rec = input('Choose a reaction: ')
+    reaction_ids = {
+        '1': '1635855486666999',
+        '2': '1678524932434102',
+        '3': '115940658764963',
+        '4': '478547315650144',
+        '5': '613557422527858',
+        '6': '908563459236466',
+        '7': '444813342392137',
+        '8': '0'
+    }
+    return reaction_ids.get(rec)
 
-    def get_ids_tokens(file_path):
-        """Retrieve IDs or tokens from a file."""
-        with open(file_path, 'r') as file:
-            return [line.strip() for line in file]
+def linktradio(post_link: str) -> str:
+    patterns = [
+        r'/posts/(\w+)',
+        r'/videos/(\w+)',
+        r'/groups/(\d+)/permalink/(\d+)',
+        r'/reels/(\w+)',
+        r'/live/(\w+)',
+        r'/photos/(\w+)',
+        r'/permalink/(\w+)',
+        r'story_fbid=(\w+)',
+        r'fbid=(\d+)'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, post_link)
+        if match:
+            if pattern == r'/groups/(\d+)/permalink/(\d+)':
+                return match.group(2)
+            return match.group(1)
+    
+    print("Invalid post link or format")
+    return None
 
-    actor_ids = get_ids_tokens('/sdcard/TEST-BOOSTING/TOKENS.txt')
-    tokens = get_ids_tokens('/sdcard/TEST-BOOSTING/IDS.txt')
+def get_ids_tokens(file_path):
+    with open(file_path, 'r') as file:
+        return [line.strip() for line in file]
 
-    post_link = input('Enter the Facebook post link: ')
-    post_id = re.search(r'/posts/(\w+)', post_link)
-    if not post_id:
-        print(f"{r}Invalid post link.")
-        return
-    post_id = post_id.group(1)
+actor_ids = get_ids_tokens('/sdcard/TEST-BOOSTING/TOKENS.txt')
+tokens = get_ids_tokens('/sdcard/TEST-BOOSTING/IDS.txt')
 
-    react = choose_reaction()
-    if react:
-        react_count = int(input("How many successful reactions do you want to send? "))
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            for actor_id, token in zip(actor_ids, tokens):
-                executor.submit(process_reaction, actor_id, token, post_id, react, react_count)
-                if successful_reactions >= react_count:
-                    break
-    else:
-        print(f"{r}Invalid reaction option.")
+post_link = input('Enter the Facebook post link: ')
+post_id = linktradio(post_link)
 
-# Run the AutoReact script
-AutoReact()
+if not post_id:
+    exit()
+
+react = choose_reaction()
+if react:
+    global react_count
+    react_count = int(input("How many reactions do you want to send? "))
+    
+    for actor_id, token in zip(actor_ids, tokens):
+        process_reaction(actor_id, token, post_id, react)
+
+    print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
+else:
+    print('[bold red]Invalid reaction option.[/bold red]')

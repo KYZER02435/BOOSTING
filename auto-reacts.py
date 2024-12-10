@@ -16,7 +16,7 @@ successful_reactions = 0
 
 def fetch_proxies():
     """Fetch proxies from ProxyScrape and return as a list."""
-    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=100&country=all&ssl=all&anonymity=all"
+    url = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=1000&country=all&ssl=all&anonymity=all"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -97,8 +97,7 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
 def process_reaction(actor_id, token, post_id, react):
     global successful_reactions
     if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
-            successful_reactions += 1
+        successful_reactions += 1
 
 def choose_reaction():
     print("Please choose the reaction you want to use.\n")
@@ -170,7 +169,10 @@ if react:
     react_count = int(input("How many reactions do you want to send? "))
     
     for actor_id, token in zip(actor_ids, tokens):
+        if successful_reactions >= react_count:
+            break
         process_reaction(actor_id, token, post_id, react)
+        time.sleep(random.uniform(2, 5))  # Randomized delay to mimic human behavior
 
     print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
 else:

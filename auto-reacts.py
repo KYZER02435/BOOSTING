@@ -1,11 +1,12 @@
 import requests
 import json
-import threading
 import time
 import uuid
 import base64
 import re
 import random
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed  # Fix: Import ThreadPoolExecutor
 from rich import print
 
 # Color definitions

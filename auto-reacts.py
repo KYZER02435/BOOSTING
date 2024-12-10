@@ -96,10 +96,9 @@ def Reaction(actor_id: str, post_id: str, react: str, token: str) -> bool:
 
 def process_reaction(actor_id, token, post_id, react):
     global successful_reactions
-    if successful_reactions >= react_count:
-        return  # Stop further processing if the target is reached
     if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-        successful_reactions += 1
+        if successful_reactions < react_count:  # Ensure only up to react_count successful reactions
+            successful_reactions += 1
 
 def choose_reaction():
     print("Please choose the reaction you want to use.\n")
@@ -171,9 +170,9 @@ if react:
     react_count = int(input("How many reactions do you want to send? "))
     
     for actor_id, token in zip(actor_ids, tokens):
+        if successful_reactions >= react_count:  # Stop if the target is reached
+            break
         process_reaction(actor_id, token, post_id, react)
-        if successful_reactions >= react_count:
-            break  # Stop when the target is reached
 
     print(f"[bold green]{successful_reactions} successful reactions sent! You're awesome![/bold green]")
 else:

@@ -139,8 +139,18 @@ def kyzer():
         "Samsung": "SM-",
         "Realme": "RMX",
         "Oppo": "CPH",
-        "Xiaomi": "M"
+        "Xiaomi": "M",
+        "Vivo": "V",
+        "Nokia": "TA-",
+        "Huawei": "CLT-",
+        "Infinix": "X",
+        "Tecno": "CD-",
+        "OnePlus": "NE",
+        "LG": "LM-",
+        "Sony": "G",
+        "Motorola": "XT"
     }
+
     fbpn_options = ['com.facebook.katana', 'com.facebook.lite', 'com.facebook.orca']
     fbca_options = [
         "armeabi-v7a:armeabi", "arm64-v8a:armeabi",
@@ -149,20 +159,29 @@ def kyzer():
 
     brand = random.choice(list(model_prefixes.keys()))
     model_prefix = model_prefixes[brand]
-    model = f"{model_prefix}{random.randint(1000, 9999)}"
+
+    # Ensure realistic ranges for model numbers based on brand
+    if brand == "Samsung":
+        model = f"{model_prefix}{random.randint(100, 999)}"
+    elif brand in ["Realme", "Oppo", "Vivo"]:
+        model = f"{model_prefix}{random.randint(1000, 9999)}"
+    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno"]:
+        model = f"{model_prefix}{random.randint(10, 999)}"
+    elif brand in ["OnePlus", "LG", "Sony", "Motorola"]:
+        model = f"{model_prefix}{random.randint(100, 9999)}"
 
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
     fbbv = random.randint(100000000, 999999999)  # Build version
     fbdm_width = random.choice([720, 1080, 1440, 1920])
     fbdm_height = int(fbdm_width * (16 / 9))  # Aspect ratio
-    fbdm_density = random.uniform(2.0, 4.0)
+    fbdm_density = round(random.uniform(2.0, 4.0), 1)  # Density values rounded to 1 decimal place
     fbca = random.choice(fbca_options)  # CPU architecture
     fbpn = random.choice(fbpn_options)  # Package name
 
     ua = (
         f"Dalvik/2.1.0 (Linux; U; Android {random.randint(6, 13)}; "
         f"{brand} {model}) "
-        f"[FBAN/FB4A;FBAV/{fbav};FBBV/{fbbv};FBDM/{{density={fbdm_density:.1f},width={fbdm_width},height={fbdm_height}}};"
+        f"[FBAN/FB4A;FBAV/{fbav};FBBV/{fbbv};FBDM/{{density={fbdm_density},width={fbdm_width},height={fbdm_height}}};"
         f"FBLC/en_US;FBPN/{fbpn};FBOP/19;FBCA/{fbca}]"
     )
 

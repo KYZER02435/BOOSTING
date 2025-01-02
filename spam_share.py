@@ -32,12 +32,12 @@ class ShareManager:
                 print(f"❌ Failed to share post: {response}")
         except requests.exceptions.RequestException as e:
             print(f"⚠️ Network error: {e}")
-
+    
     def worker(self):
         """Thread worker function to process tokens from the queue."""
         while self.success_count < self.total_shares:
             try:
-                token = self.queue.get(timeout=0.5)  # Timeout to avoid hanging threads
+                token = self.queue.get(timeout=0.2)  # Timeout to avoid hanging threads
                 self.share_post(token)
                 self.queue.task_done()
                 if self.success_count >= self.total_shares:

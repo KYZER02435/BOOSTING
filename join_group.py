@@ -1,6 +1,6 @@
 import requests
 import re
-from concurrent.futures import ThreadPoolExecutor
+import random
 
 # Load tokens from the file
 def get_tokens_from_file(file_path):
@@ -40,31 +40,41 @@ def extract_group_id(input_value):
 
 # Main function to join bots to the group
 def auto_group_join(group_id, num_bots):
+    # Load access tokens from the file
     access_tokens = get_tokens_from_file('/sdcard/Test/toka.txt')
-    valid_tokens = [token for token in access_tokens if token.startswith("EA") or token.startswith("EAA")]
+    random.shuffle(access_tokens)  # Shuffle tokens for randomness
     
     join_count = 0
-    failed_count = 0
+    failed_attempts = 0
 
-    def join_task(access_token):
-        nonlocal join_count, failed_count
-        profile_id = get_profile_id(access_token)
-        if profile_id:
-            if join_group(group_id, profile_id, access_token):
-                print(f"Success: Group ID {group_id}, User ID {profile_id}")
-                join_count += 1
+    while join_count < num_bots:
+        if not access_tokens:
+            print("No more tokens available to try.")
+            break  # Exit if there are no tokens left
+        
+        access_token = access_tokens.pop(0)  # Get the next token
+        
+        if access_token.startswith("EA") or access_token.startswith("EAA"):
+            profile_id = get_profile_id(access_token)
+            
+            if profile_id:
+                success = join_group(group_id, profile_id, access_token)
+                
+                if success:
+                    print(f"Success: Group ID {group_id}, User ID {profile_id}")
+                    join_count += 1
+                else:
+                    print(f"Failed: Group ID {group_id}, User ID {profile_id}")
+                    failed_attempts += 1
             else:
-                print(f"Failed: Group ID {group_id}, User ID {profile_id}")
-                failed_count += 1
+                print("Failed: Invalid profile ID for token.")
+                failed_attempts += 1
         else:
-            print("Failed: Invalid profile ID for token.")
-            failed_count += 1
-
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        executor.map(join_task, valid_tokens[:num_bots])
+            print("Failed: Invalid access token format.")
+            failed_attempts += 1
 
     print(f"\nSuccessfully joined {join_count} accounts to the group.")
-    print(f"Failed to join {failed_count} accounts.")
+    print(f"Failed attempts: {failed_attempts}")
 
 # Input the group link or ID and extract the ID if necessary
 group_input = input("Enter the Facebook group link or ID: ")

@@ -1,6 +1,6 @@
 import requests
-import time
 import re
+from concurrent.futures import ThreadPoolExecutor
 
 # Load tokens from the file
 def get_tokens_from_file(file_path):
@@ -24,16 +24,10 @@ def get_profile_id(access_token):
 # Function to join the group using an access token and profile ID
 def join_group(group_id, profile_id, access_token):
     try:
-        # Construct the URL by including the profile ID in the path
         url = f'https://graph.facebook.com/{group_id}/members/{profile_id}'
         params = {'access_token': access_token}
-        
         response = requests.post(url, params=params)
-        
-        if response.status_code == 200:
-            return True
-        else:
-            return False
+        return response.status_code == 200
     except requests.exceptions.RequestException:
         return False
 
@@ -42,42 +36,33 @@ def extract_group_id(input_value):
     match = re.search(r'/groups/(\d+)', input_value)
     if match:
         return match.group(1)
-    return input_value  # Assume it's a plain ID if no match found
+    return input_value
 
 # Main function to join bots to the group
 def auto_group_join(group_id, num_bots):
-    # Load access tokens from the file
     access_tokens = get_tokens_from_file('/sdcard/Test/toka.txt')
+    valid_tokens = [token for token in access_tokens if token.startswith("EA") or token.startswith("EAA")]
     
     join_count = 0
     failed_count = 0
 
-    for access_token in access_tokens:
-        if join_count >= num_bots:
-            break  # Stop if the required number of bots have joined
-        
-        if access_token.startswith("EA") or access_token.startswith("EAA"):
-            profile_id = get_profile_id(access_token)
-            
-            if profile_id:
-                success = join_group(group_id, profile_id, access_token)
-                
-                if success:
-                    print(f"Success: Group ID {group_id}, User ID {profile_id}")
-                    join_count += 1
-                else:
-                    print(f"Failed: Group ID {group_id}, User ID {profile_id}")
-                    failed_count += 1
+    def join_task(access_token):
+        nonlocal join_count, failed_count
+        profile_id = get_profile_id(access_token)
+        if profile_id:
+            if join_group(group_id, profile_id, access_token):
+                print(f"Success: Group ID {group_id}, User ID {profile_id}")
+                join_count += 1
             else:
-                print(f"Failed: Invalid profile ID for token.")
+                print(f"Failed: Group ID {group_id}, User ID {profile_id}")
                 failed_count += 1
         else:
-            print("Failed: Invalid access token format")
+            print("Failed: Invalid profile ID for token.")
             failed_count += 1
 
-        time.sleep(1)  # Delay to avoid rapid requests
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(join_task, valid_tokens[:num_bots])
 
-    # Final output of success and failed counts
     print(f"\nSuccessfully joined {join_count} accounts to the group.")
     print(f"Failed to join {failed_count} accounts.")
 

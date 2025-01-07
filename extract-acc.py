@@ -148,7 +148,23 @@ def kyzer():
         "OnePlus": "NE",
         "LG": "LM-",
         "Sony": "G",
-        "Motorola": "XT"
+        "Motorola": "XT",
+        "Asus": "ASUS_",
+        "Lenovo": "LNV-",
+        "Google": "Pixel ",
+        "ZTE": "ZTE_",
+        "HTC": "HTC_",
+        "Alcatel": "ALC-",
+        "BlackBerry": "BB-",
+        "Honor": "HONOR_",
+        "Itel": "IT_",
+        "Micromax": "MMX_",
+        "Panasonic": "PANA_",
+        "Meizu": "MZ_",
+        "Sharp": "SH-",
+        "Coolpad": "CP_",
+        "Lava": "LAVA_",
+        "iQOO": "I",
     }
 
     fbpn_options = ['com.facebook.katana', 'com.facebook.lite', 'com.facebook.orca']
@@ -160,21 +176,23 @@ def kyzer():
     brand = random.choice(list(model_prefixes.keys()))
     model_prefix = model_prefixes[brand]
 
-    # Ensure realistic ranges for model numbers based on brand
-    if brand == "Samsung":
+    # Generate realistic model numbers based on brand
+    if brand in ["Samsung", "Sony", "ZTE", "Sharp"]:
         model = f"{model_prefix}{random.randint(100, 999)}"
-    elif brand in ["Realme", "Oppo", "Vivo"]:
+    elif brand in ["Realme", "Oppo", "Vivo", "Asus", "Honor", "Lenovo", "iQOO"]:
         model = f"{model_prefix}{random.randint(1000, 9999)}"
-    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno"]:
+    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno", "HTC", "Coolpad", "Meizu", "Micromax", "Itel", "Lava"]:
         model = f"{model_prefix}{random.randint(10, 999)}"
-    elif brand in ["OnePlus", "LG", "Sony", "Motorola"]:
+    elif brand in ["OnePlus", "LG", "Motorola", "BlackBerry", "Panasonic", "Alcatel"]:
         model = f"{model_prefix}{random.randint(100, 9999)}"
+    elif brand == "Google":
+        model = f"{model_prefix}{random.choice(['4', '4a', '5', '5a', '6', '6a', '7', '7a', 'Pro'])}"
 
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
     fbbv = random.randint(100000000, 999999999)  # Build version
     fbdm_width = random.choice([720, 1080, 1440, 1920])
     fbdm_height = int(fbdm_width * (16 / 9))  # Aspect ratio
-    fbdm_density = round(random.uniform(2.0, 4.0), 1)  # Density values rounded to 1 decimal place
+    fbdm_density = round(random.uniform(2.0, 4.0), 1)  # Screen density
     fbca = random.choice(fbca_options)  # CPU architecture
     fbpn = random.choice(fbpn_options)  # Package name
 

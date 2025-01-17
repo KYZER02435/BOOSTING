@@ -32,27 +32,25 @@ def load_tokens(file_path):
     with open(file_path, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
-def worker(tokens, link, success_queue, token_index):
+def worker(tokens, link, token_index):
     """Worker function for sharing posts."""
     while True:
         token = tokens[token_index % len(tokens)]  # Cycle through tokens
         post_id = share_post(token, link)
         if post_id:
-            success_queue.put(f"{token[:8]}_{post_id}")
+            print(f"✅ Successfully Shared: {token[:8]}_{post_id}")  # Print immediately
             break  # Stop only if the post was successfully shared
         token_index += 1  # Move to the next token if the current one fails
 
 def fast_share(tokens, link, share_count):
     """Executes the sharing process using multiple threads."""
-    success_queue = Queue()
     start_time = time.time()
-
     print("🚀 Starting sharing process...")  
 
     with ThreadPoolExecutor(max_workers=min(len(tokens), 70)) as executor:
         futures = []
         for i in range(share_count):
-            futures.append(executor.submit(worker, tokens, link, success_queue, i))
+            futures.append(executor.submit(worker, tokens, link, i))
 
         # Ensure all tasks complete
         for future in futures:
@@ -64,17 +62,7 @@ def fast_share(tokens, link, share_count):
     total_time = timedelta(seconds=int(elapsed_time))
     avg_time = timedelta(seconds=int(avg_time_per_share))
 
-    success_count = success_queue.qsize()
-
-    print("\n📋 Success Details:")
-    if success_count == 0:
-        print("❌ No posts were successfully shared.")
-    while not success_queue.empty():
-        print(f"✅ {success_queue.get()}")
-
     print(f"\n🚀 Target: {link}")
-    print(f"✅ Successfully Shared: {success_count}/{share_count}")
-    
     print(f"⏳ Total Time: {total_time}")
     print(f"⏱️ Average Time per Share: {avg_time}")
 

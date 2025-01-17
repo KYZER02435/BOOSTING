@@ -23,7 +23,6 @@ def share_post(token, link, max_retries=3):
             elif 'error' in response:
                 error_msg = response['error'].get('message', 'Unknown error')
                 if "Invalid OAuth access token" in error_msg or "Session expired" in error_msg:
-                    print(f"❌ Token banned: {token[:8]}...")  # Hide full token for safety
                     return None  # Stop retrying for banned tokens
         except requests.exceptions.RequestException:
             pass  # Ignore network errors, retry immediately
@@ -46,16 +45,21 @@ def worker(token, link, success_queue):
         success_queue.put(f"{token[:8]}_{post_id}")
 
 def fast_share(tokens, link, share_count):
-    """Executes the sharing process using multiple threads."""
+    """Executes the sharing process using multiple threads and ensures exact shares."""
     success_queue = Queue()
     start_time = time.time()
 
     print("🚀 Starting sharing process...")  
 
     with ThreadPoolExecutor(max_workers=min(len(tokens), 70)) as executor:
+        futures = []
         for i in range(share_count):
             token = tokens[i % len(tokens)]
-            executor.submit(worker, token, link, success_queue)
+            futures.append(executor.submit(worker, token, link, success_queue))
+
+        # Wait for all threads to finish
+        for future in futures:
+            future.result()
 
     elapsed_time = time.time() - start_time
     avg_time_per_share = elapsed_time / share_count if share_count > 0 else 0
@@ -63,14 +67,16 @@ def fast_share(tokens, link, share_count):
     total_time = timedelta(seconds=int(elapsed_time))
     avg_time = timedelta(seconds=int(avg_time_per_share))
 
+    success_count = success_queue.qsize()
+
     print("\n📋 Success Details:")
-    if success_queue.empty():
+    if success_count == 0:
         print("❌ No posts were successfully shared.")
     while not success_queue.empty():
-        print(f"✅ {success_queue.get()}")
+        print(f"[bold green]✅ {success_queue.get()}")
 
     print(f"\n🚀 Target: {link}")
-    print(f"✅ Completed {share_count} shares.")
+    print(f"[bold green]✅ Successfully Shared: {success_count}/{share_count}")
     print(f"⏳ Total Time: {total_time}")
     print(f"⏱️ Average Time per Share: {avg_time}")
 

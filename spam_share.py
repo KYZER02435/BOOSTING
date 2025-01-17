@@ -18,7 +18,7 @@ class ShareManager:
         payload = {
             'link': self.link,
             'published': '0',
-            'privacy': '{"value":"SELF"}',
+            'privacy': '{"value":"EVERYONE"}',
             'access_token': token
         }
 

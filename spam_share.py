@@ -37,8 +37,8 @@ def worker(tokens, link, token_index, share_number):
         token = tokens[token_index % len(tokens)]  # Cycle through tokens
         post_id = share_post(token, link)
         if post_id:
-            print(f"✅ Successfully Shared: {token[:8]}_{post_id} : {share_number}")  # Updated print format
-            break  # Stop only if the post was successfully shared
+            print(f"✅ Successfully Shared: {token[:8]}_{post_id} : {share_number}")  # Fixed share count
+            return  # Stop only if the post was successfully shared
         token_index += 1  # Move to the next token if the current one fails
 
 def fast_share(tokens, link, share_count):
@@ -48,8 +48,12 @@ def fast_share(tokens, link, share_count):
 
     with ThreadPoolExecutor(max_workers=min(len(tokens), 70)) as executor:
         futures = []
-        for i in range(share_count):
-            futures.append(executor.submit(worker, tokens, link, i, i + 1))  # Pass share number
+        share_number = 1  # Start share count from 1
+
+        while share_number <= share_count:
+            future = executor.submit(worker, tokens, link, share_number - 1, share_number)
+            futures.append(future)
+            share_number += 1  # Increment count only when a share task is created
 
         # Ensure all tasks complete
         for future in futures:

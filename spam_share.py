@@ -2,7 +2,6 @@ import os
 import requests
 import time
 from datetime import timedelta
-from queue import Queue
 from concurrent.futures import ThreadPoolExecutor
 
 def share_post(token, link):
@@ -32,13 +31,13 @@ def load_tokens(file_path):
     with open(file_path, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
-def worker(tokens, link, token_index):
+def worker(tokens, link, token_index, share_number):
     """Worker function for sharing posts."""
     while True:
         token = tokens[token_index % len(tokens)]  # Cycle through tokens
         post_id = share_post(token, link)
         if post_id:
-            print(f"✅ Successfully Shared: {token[:8]}_{post_id}")  # Print immediately
+            print(f"✅ Successfully Shared: {token[:8]}_{post_id} : {share_number}")  # Updated print format
             break  # Stop only if the post was successfully shared
         token_index += 1  # Move to the next token if the current one fails
 
@@ -50,7 +49,7 @@ def fast_share(tokens, link, share_count):
     with ThreadPoolExecutor(max_workers=min(len(tokens), 70)) as executor:
         futures = []
         for i in range(share_count):
-            futures.append(executor.submit(worker, tokens, link, i))
+            futures.append(executor.submit(worker, tokens, link, i, i + 1))  # Pass share number
 
         # Ensure all tasks complete
         for future in futures:

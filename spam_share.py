@@ -3,6 +3,7 @@ import requests
 import time
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 def share_post(token, link):
     """Shares a post on the user's feed with 'Only Me' privacy."""
@@ -25,39 +26,44 @@ def share_post(token, link):
 def load_tokens(file_path):
     """Loads tokens from a file, one token per line."""
     if not os.path.exists(file_path):
-        print("âŒ Token file not found.")
+        print("❌ Token file not found.")
         return []
 
     with open(file_path, 'r') as f:
         return [line.strip() for line in f if line.strip()]
 
-def worker(tokens, link, token_index, share_number):
+def worker(tokens, link, token_index, success_list, lock, share_count):
     """Worker function for sharing posts."""
     while True:
+        with lock:
+            if len(success_list) >= share_count:
+                return  # Stop when target is reached
+
         token = tokens[token_index % len(tokens)]  # Cycle through tokens
         post_id = share_post(token, link)
         if post_id:
-            print(f"âœ… Successfully Shared: {token[:8]}_{post_id} : {share_number}")  # Fixed share count
+            with lock:
+                success_list.append(f"✅ Successfully Shared: {token[:8]}_{post_id} : {len(success_list) + 1}")
+                print(f"✅ Successfully Shared: {token[:8]}_{post_id} : {len(success_list)}")
             return  # Stop only if the post was successfully shared
         token_index += 1  # Move to the next token if the current one fails
 
 def fast_share(tokens, link, share_count):
     """Executes the sharing process using multiple threads."""
     start_time = time.time()
-    print("ðŸš€ Starting sharing process...")  
+    print("🚀 Starting sharing process...")  
+
+    success_list = []  # List to track successful shares
+    lock = Lock()  # Lock to ensure thread safety
 
     with ThreadPoolExecutor(max_workers=min(len(tokens), 70)) as executor:
-        futures = []
-        share_number = 1  # Start share count from 1
+        futures = [executor.submit(worker, tokens, link, i, success_list, lock, share_count) for i in range(share_count)]
 
-        while share_number <= share_count:
-            future = executor.submit(worker, tokens, link, share_number - 1, share_number)
-            futures.append(future)
-            share_number += 1  # Increment count only when a share task is created
-
-        # Ensure all tasks complete
+        # Ensure all tasks complete without getting stuck
         for future in futures:
             future.result()
+            if len(success_list) >= share_count:
+                break  # Stop as soon as the target is reached
 
     elapsed_time = time.time() - start_time
     avg_time_per_share = elapsed_time / share_count if share_count > 0 else 0
@@ -65,31 +71,33 @@ def fast_share(tokens, link, share_count):
     total_time = timedelta(seconds=int(elapsed_time))
     avg_time = timedelta(seconds=int(avg_time_per_share))
 
-    print(f"\nðŸš€ Target: {link}")
-    print(f"â³ Total Time: {total_time}")
-    print(f"â±ï¸ Average Time per Share: {avg_time}")
+    print(f"\n🚀 Target: {link}")
+    print(f"✅ Successfully Shared: {len(success_list)}/{share_count}")
+    print(f"⏳ Total Time: {total_time}")
+    print(f"⏱️ Average Time per Share: {avg_time}")
 
 def main():
     token_file = "/sdcard/Test/toka.txt"
     tokens = load_tokens(token_file)
 
     if not tokens:
-        print("âŒ No valid tokens found. Exiting...")
+        print("❌ No valid tokens found. Exiting...")
         return
 
     link = input("Enter the post link to share: ").strip()
-    print(f"\nâœ… Link Confirmed: {link}")
+    print(f"\n✅ Link Confirmed: {link}")
 
     try:
         total_shares = int(input("Enter the total number of shares: ").strip())
         if total_shares <= 0:
-            print("âŒ Total shares must be greater than 0.")
+            print("❌ Total shares must be greater than 0.")
             return
     except ValueError:
-        print("âŒ Invalid input. Please enter a number.")
+        print("❌ Invalid input. Please enter a number.")
         return
 
     fast_share(tokens, link, total_shares)
 
 if __name__ == "__main__":
     main()
+   

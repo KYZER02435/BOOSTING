@@ -45,7 +45,7 @@ def AutoReact():
             if react == '0':
                 print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
                 return True
-            elif react in str(pos):
+            elif '"feedback_reaction_id"' in str(pos):  # Check if the reaction was applied
                 print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
                 return True
             else:
@@ -55,11 +55,15 @@ def AutoReact():
             print(f"{r}Reaction failed due to an error.")
             return False
 
-    def process_reaction(actor_id, token, post_id, react):
+    def process_reaction(actor_id, token, post_id, react, target_count):
         global successful_reactions
-        if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-            with counter_lock:
-                successful_reactions += 1
+        while True:
+            if successful_reactions >= target_count:
+                break
+            if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+                with counter_lock:
+                    successful_reactions += 1
+                break  # Exit loop if successful
 
     def choose_reactions():
         print("Please choose the reactions you want to use. Separate choices with commas (e.g., 1,4).\n")
@@ -151,22 +155,20 @@ def AutoReact():
     
     reaction_ids = choose_reactions()
     if reaction_ids:
-        react_count = int(input("How many reactions do you want to send? "))
+        react_count = int(input("How many successful reactions do you want to send? "))
         threads = []
 
-        reactions_per_type = react_count // len(reaction_ids)
-        reaction_queue = [react for react in reaction_ids for _ in range(reactions_per_type)]
-        
-        for actor_id, token in zip(actor_ids, tokens):
-            if not reaction_queue:
-                break
-            react = reaction_queue.pop()
-            t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react))
-            threads.append(t)
-            t.start()
+        while successful_reactions < react_count:
+            for actor_id, token in zip(actor_ids, tokens):
+                if successful_reactions >= react_count:
+                    break
+                react = reaction_ids[successful_reactions % len(reaction_ids)]  # Cycle through reactions
+                t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react, react_count))
+                threads.append(t)
+                t.start()
 
-        for t in threads:
-            t.join()
+            for t in threads:
+                t.join()
 
         print(f"[bold green]{successful_reactions} successful reactions sent![/bold green]")
     else:

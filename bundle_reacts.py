@@ -40,30 +40,28 @@ def AutoReact():
             'client_trace_id': str(uuid.uuid4())
         }
 
-        pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
-        try:
-            if react == '0':
-                print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
-                return True
-            elif '"feedback_reaction_id"' in str(pos):  # Check if the reaction was applied
-                print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
-                return True
-            else:
-                print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
-                return False
-        except Exception:
-            print(f"{r}Reaction failed due to an error.")
+        response = rui.post('https://graph.facebook.com/graphql', data=data).json()
+
+        # DEBUG: Print response for troubleshooting (can be removed after testing)
+        print(f"DEBUG: API Response: {response}")
+
+        if "error" in response:
+            print(f"[bold red]「Failed」» Reacted with » {actor_id} to {post_id} (Error: {response['error']['message']})[/bold red]")
             return False
 
-    def process_reaction(actor_id, token, post_id, react, target_count):
+        if "data" in response and "viewer_reaction" in response["data"]:
+            print(f"[bold green]「Success」» Reacted with » {actor_id} to {post_id}[/bold green]")
+            return True
+
+        # If no explicit success is detected, assume failure
+        print(f"[bold red]「Failed」» Reacted with » {actor_id} to {post_id} (Unknown Response Format)[/bold red]")
+        return False
+
+    def process_reaction(actor_id, token, post_id, react):
         global successful_reactions
-        while True:
-            if successful_reactions >= target_count:
-                break
-            if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
-                with counter_lock:
-                    successful_reactions += 1
-                break  # Exit loop if successful
+        if Reaction(actor_id=actor_id, post_id=post_id, react=react, token=token):
+            with counter_lock:
+                successful_reactions += 1
 
     def choose_reactions():
         print("Please choose the reactions you want to use. Separate choices with commas (e.g., 1,4).\n")
@@ -155,20 +153,22 @@ def AutoReact():
     
     reaction_ids = choose_reactions()
     if reaction_ids:
-        react_count = int(input("How many successful reactions do you want to send? "))
+        react_count = int(input("How many reactions do you want to send? "))
         threads = []
 
-        while successful_reactions < react_count:
-            for actor_id, token in zip(actor_ids, tokens):
-                if successful_reactions >= react_count:
-                    break
-                react = reaction_ids[successful_reactions % len(reaction_ids)]  # Cycle through reactions
-                t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react, react_count))
-                threads.append(t)
-                t.start()
+        reactions_per_type = react_count // len(reaction_ids)
+        reaction_queue = [react for react in reaction_ids for _ in range(reactions_per_type)]
+        
+        for actor_id, token in zip(actor_ids, tokens):
+            if not reaction_queue:
+                break
+            react = reaction_queue.pop()
+            t = threading.Thread(target=process_reaction, args=(actor_id, token, post_id, react))
+            threads.append(t)
+            t.start()
 
-            for t in threads:
-                t.join()
+        for t in threads:
+            t.join()
 
         print(f"[bold green]{successful_reactions} successful reactions sent![/bold green]")
     else:

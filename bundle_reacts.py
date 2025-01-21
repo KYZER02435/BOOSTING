@@ -40,22 +40,20 @@ def AutoReact():
             'client_trace_id': str(uuid.uuid4())
         }
 
-        response = rui.post('https://graph.facebook.com/graphql', data=data).json()
-
-        # DEBUG: Print response for troubleshooting (can be removed after testing)
-        print(f"DEBUG: API Response: {response}")
-
-        if "error" in response:
-            print(f"[bold red]「Failed」» Reacted with » {actor_id} to {post_id} (Error: {response['error']['message']})[/bold red]")
+        pos = rui.post('https://graph.facebook.com/graphql', data=data).json()
+        try:
+            if react == '0':
+                print(f"{g}「Success」» Removed reaction from {actor_id} on {post_id}")
+                return True
+            elif react in str(pos):
+                print(f"{g}「Success」» Reacted with » {actor_id} to {post_id}")
+                return True
+            else:
+                print(f"{r}「Failed」» Reacted with » {actor_id} to {post_id}")
+                return False
+        except Exception:
+            print(f"{r}Reaction failed due to an error.")
             return False
-
-        if "data" in response and "viewer_reaction" in response["data"]:
-            print(f"[bold green]「Success」» Reacted with » {actor_id} to {post_id}[/bold green]")
-            return True
-
-        # If no explicit success is detected, assume failure
-        print(f"[bold red]「Failed」» Reacted with » {actor_id} to {post_id} (Unknown Response Format)[/bold red]")
-        return False
 
     def process_reaction(actor_id, token, post_id, react):
         global successful_reactions

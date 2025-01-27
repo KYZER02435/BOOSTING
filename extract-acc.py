@@ -140,6 +140,7 @@ def kyzer():
         "Realme": "RMX",
         "Oppo": "CPH",
         "Xiaomi": "M",
+        "Poco": "Poco ",
         "Vivo": "V",
         "Nokia": "TA-",
         "Huawei": "CLT-",
@@ -165,9 +166,23 @@ def kyzer():
         "Coolpad": "CP_",
         "Lava": "LAVA_",
         "iQOO": "I",
+        "Acer": "ACER_",
+        "Toshiba": "TOSHIBA_",
+        "Dell": "DELL_",
+        "MSI": "MSI_",
+        "Razer": "RAZER_",
+        "Alienware": "ALIEN_",
+        "Apple": "iPhone ",
     }
 
-    fbpn_options = ['com.facebook.katana', 'com.facebook.lite', 'com.facebook.orca']
+    fbpn_options = [
+        'com.facebook.katana',
+        'com.facebook.lite',
+        'com.facebook.orca',
+        'com.facebook.mlite',
+        'com.facebook.messenger'
+    ]
+
     fbca_options = [
         "armeabi-v7a:armeabi", "arm64-v8a:armeabi",
         "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"
@@ -177,16 +192,22 @@ def kyzer():
     model_prefix = model_prefixes[brand]
 
     # Generate realistic model numbers based on brand
-    if brand in ["Samsung", "Sony", "ZTE", "Sharp"]:
-        model = f"{model_prefix}{random.randint(100, 999)}"
-    elif brand in ["Realme", "Oppo", "Vivo", "Asus", "Honor", "Lenovo", "iQOO"]:
-        model = f"{model_prefix}{random.randint(1000, 9999)}"
-    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno", "HTC", "Coolpad", "Meizu", "Micromax", "Itel", "Lava"]:
-        model = f"{model_prefix}{random.randint(10, 999)}"
-    elif brand in ["OnePlus", "LG", "Motorola", "BlackBerry", "Panasonic", "Alcatel"]:
+    if brand in ["Samsung", "Sony", "ZTE", "Sharp", "Motorola", "HTC"]:
         model = f"{model_prefix}{random.randint(100, 9999)}"
+    elif brand in ["Realme", "Oppo", "Vivo", "Asus", "Honor", "Lenovo", "iQOO", "Acer", "MSI", "Razer"]:
+        model = f"{model_prefix}{random.randint(1000, 99999)}"
+    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno", "Coolpad", "Meizu", "Micromax", "Itel", "Lava"]:
+        model = f"{model_prefix}{random.randint(10, 9999)}"
+    elif brand in ["OnePlus", "LG", "BlackBerry", "Panasonic", "Alcatel"]:
+        model = f"{model_prefix}{random.randint(100, 99999)}"
     elif brand == "Google":
-        model = f"{model_prefix}{random.choice(['4', '4a', '5', '5a', '6', '6a', '7', '7a', 'Pro'])}"
+        model = f"{model_prefix}{random.choice(['4', '4a', '5', '5a', '6', '6a', '7', '7a', '8', '8a', 'Pro'])}"
+    elif brand == "Poco":
+        model = f"{model_prefix}{random.choice(['X3', 'F1', 'M3', 'F3', 'X4', 'M4', 'F5', 'X5'])}"
+    elif brand in ["Dell", "Toshiba", "Alienware"]:
+        model = f"{model_prefix}{random.randint(1000, 99999)}"
+    elif brand == "Apple":
+        model = f"{model_prefix}{random.choice(['6', '6s', '7', '8', 'X', 'XR', 'XS', '11', '12', '13', '14', '15'])}"
 
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
     fbbv = random.randint(100000000, 999999999)  # Build version
@@ -197,7 +218,7 @@ def kyzer():
     fbpn = random.choice(fbpn_options)  # Package name
 
     ua = (
-        f"Dalvik/2.1.0 (Linux; U; Android {random.randint(6, 13)}; "
+        f"Dalvik/2.1.0 (Linux; U; Android {random.randint(6, 15)}; "
         f"{brand} {model}) "
         f"[FBAN/FB4A;FBAV/{fbav};FBBV/{fbbv};FBDM/{{density={fbdm_density},width={fbdm_width},height={fbdm_height}}};"
         f"FBLC/en_US;FBPN/{fbpn};FBOP/19;FBCA/{fbca}]"

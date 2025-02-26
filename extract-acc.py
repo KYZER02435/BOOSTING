@@ -173,6 +173,12 @@ def kyzer():
         "Razer": "RAZER_",
         "Alienware": "ALIEN_",
         "Apple": "iPhone ",
+        "Nothing": "Nothing Phone ",
+        "Fairphone": "FP",
+        "Redmi": "Redmi Note ",
+        "Vsmart": "Vsmart ",
+        "Essential": "PH-",
+        "Gionee": "Gionee "
     }
 
     fbpn_options = [
@@ -191,29 +197,35 @@ def kyzer():
     brand = random.choice(list(model_prefixes.keys()))
     model_prefix = model_prefixes[brand]
 
-    # Generate realistic model numbers based on brand
-    if brand in ["Samsung", "Sony", "ZTE", "Sharp", "Motorola", "HTC"]:
+    # Generate realistic model numbers
+    if brand in ["Samsung", "Sony", "ZTE", "Sharp", "Motorola", "HTC", "Fairphone"]:
         model = f"{model_prefix}{random.randint(100, 9999)}"
     elif brand in ["Realme", "Oppo", "Vivo", "Asus", "Honor", "Lenovo", "iQOO", "Acer", "MSI", "Razer"]:
         model = f"{model_prefix}{random.randint(1000, 99999)}"
     elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno", "Coolpad", "Meizu", "Micromax", "Itel", "Lava"]:
         model = f"{model_prefix}{random.randint(10, 9999)}"
-    elif brand in ["OnePlus", "LG", "BlackBerry", "Panasonic", "Alcatel"]:
+    elif brand in ["OnePlus", "LG", "BlackBerry", "Panasonic", "Alcatel", "Gionee"]:
         model = f"{model_prefix}{random.randint(100, 99999)}"
     elif brand == "Google":
         model = f"{model_prefix}{random.choice(['4', '4a', '5', '5a', '6', '6a', '7', '7a', '8', '8a', 'Pro'])}"
     elif brand == "Poco":
-        model = f"{model_prefix}{random.choice(['X3', 'F1', 'M3', 'F3', 'X4', 'M4', 'F5', 'X5'])}"
+        model = f"{model_prefix}{random.choice(['X3', 'F1', 'M3', 'F3', 'X4', 'M4', 'F5', 'X5', 'C40'])}"
+    elif brand == "Redmi":
+        model = f"{model_prefix}{random.choice(['8', '9', '10', '11', '12', '13'])} Pro"
     elif brand in ["Dell", "Toshiba", "Alienware"]:
         model = f"{model_prefix}{random.randint(1000, 99999)}"
+    elif brand == "Nothing":
+        model = f"{model_prefix}{random.choice(['1', '2'])}"
+    elif brand == "Essential":
+        model = f"{model_prefix}1"
     elif brand == "Apple":
-        model = f"{model_prefix}{random.choice(['6', '6s', '7', '8', 'X', 'XR', 'XS', '11', '12', '13', '14', '15'])}"
+        model = f"{model_prefix}{random.choice(['6', '6s', '7', '8', 'X', 'XR', 'XS', '11', '12', '13', '14', '15', 'SE', 'Plus', 'Mini', 'Pro'])}"
 
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
     fbbv = random.randint(100000000, 999999999)  # Build version
-    fbdm_width = random.choice([720, 1080, 1440, 1920])
+    fbdm_width = random.choice([720, 1080, 1280, 1440, 1920])
     fbdm_height = int(fbdm_width * (16 / 9))  # Aspect ratio
-    fbdm_density = round(random.uniform(2.0, 4.0), 1)  # Screen density
+    fbdm_density = round(random.uniform(2.0, 4.5), 1)  # Screen density
     fbca = random.choice(fbca_options)  # CPU architecture
     fbpn = random.choice(fbpn_options)  # Package name
 

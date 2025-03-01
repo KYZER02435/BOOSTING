@@ -220,6 +220,9 @@ def kyzer():
         model = f"{model_prefix}1"
     elif brand == "Apple":
         model = f"{model_prefix}{random.choice(['6', '6s', '7', '8', 'X', 'XR', 'XS', '11', '12', '13', '14', '15', 'SE', 'Plus', 'Mini', 'Pro'])}"
+    else:
+        # Default case to ensure `model` is always defined
+        model = f"{model_prefix}{random.randint(100, 9999)}"
 
     fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
     fbbv = random.randint(100000000, 999999999)  # Build version

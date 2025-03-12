@@ -135,112 +135,26 @@ def process_users(user_list, user_choice):
             print(f"{red}Invalid format in line: {user_pass}{reset}")
 
 def kyzer():
-    model_prefixes = {
-        "Samsung": "SM-",
-        "Realme": "RMX",
-        "Oppo": "CPH",
-        "Xiaomi": "M",
-        "Poco": "Poco ",
-        "Vivo": "V",
-        "Nokia": "TA-",
-        "Huawei": "CLT-",
-        "Infinix": "X",
-        "Tecno": "CD-",
-        "OnePlus": "NE",
-        "LG": "LM-",
-        "Sony": "G",
-        "Motorola": "XT",
-        "Asus": "ASUS_",
-        "Lenovo": "LNV-",
-        "Google": "Pixel ",
-        "ZTE": "ZTE_",
-        "HTC": "HTC_",
-        "Alcatel": "ALC-",
-        "BlackBerry": "BB-",
-        "Honor": "HONOR_",
-        "Itel": "IT_",
-        "Micromax": "MMX_",
-        "Panasonic": "PANA_",
-        "Meizu": "MZ_",
-        "Sharp": "SH-",
-        "Coolpad": "CP_",
-        "Lava": "LAVA_",
-        "iQOO": "I",
-        "Acer": "ACER_",
-        "Toshiba": "TOSHIBA_",
-        "Dell": "DELL_",
-        "MSI": "MSI_",
-        "Razer": "RAZER_",
-        "Alienware": "ALIEN_",
-        "Apple": "iPhone ",
-        "Nothing": "Nothing Phone ",
-        "Fairphone": "FP",
-        "Redmi": "Redmi Note ",
-        "Vsmart": "Vsmart ",
-        "Essential": "PH-",
-        "Gionee": "Gionee "
-    }
-
-    fbpn_options = [
-        'com.facebook.katana',
-        'com.facebook.lite',
-        'com.facebook.orca',
-        'com.facebook.mlite',
-        'com.facebook.messenger'
+    android_version = f"{random.randint(5, 14)}.{random.randint(0, 9)}"
+    fb_version = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"
+    fbbv = random.randint(100000000, 999999999)
+    fbca = random.choice(["armeabi-v7a:armeabi", "arm64-v8a:armeabi", "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"])
+    
+    manufacturers = ["Samsung", "Realme", "Oppo", "Vivo", "Xiaomi", "Huawei", "OnePlus", "Infinix", "Nokia", "Tecno", "Asus", "Sony"]
+    manufacturer = random.choice(manufacturers)
+    
+    models = [
+        f"SM-{random.randint(100, 9999)}U", f"RMX{random.randint(1000, 9999)}", f"CPH{random.randint(1000, 9999)}",
+        f"V{random.randint(1000, 9999)}", f"M{random.randint(1000, 9999)}", f"ELS-{random.choice(['NX9', 'AN10', 'AL00'])}",
+        f"KB{random.randint(1000, 9999)}", f"X{random.randint(1000, 9999)}", f"TA-{random.randint(1000, 9999)}"
     ]
+    
+    model = random.choice(models)
 
-    fbca_options = [
-        "armeabi-v7a:armeabi", "arm64-v8a:armeabi",
-        "armeabi-v7a", "armeabi", "arm86-v6a", "arm64-v8a"
-    ]
-
-    brand = random.choice(list(model_prefixes.keys()))
-    model_prefix = model_prefixes[brand]
-
-    # Generate realistic model numbers
-    if brand in ["Samsung", "Sony", "ZTE", "Sharp", "Motorola", "HTC", "Fairphone"]:
-        model = f"{model_prefix}{random.randint(100, 9999)}"
-    elif brand in ["Realme", "Oppo", "Vivo", "Asus", "Honor", "Lenovo", "iQOO", "Acer", "MSI", "Razer"]:
-        model = f"{model_prefix}{random.randint(1000, 99999)}"
-    elif brand in ["Xiaomi", "Huawei", "Nokia", "Infinix", "Tecno", "Coolpad", "Meizu", "Micromax", "Itel", "Lava"]:
-        model = f"{model_prefix}{random.randint(10, 9999)}"
-    elif brand in ["OnePlus", "LG", "BlackBerry", "Panasonic", "Alcatel", "Gionee"]:
-        model = f"{model_prefix}{random.randint(100, 99999)}"
-    elif brand == "Google":
-        model = f"{model_prefix}{random.choice(['4', '4a', '5', '5a', '6', '6a', '7', '7a', '8', '8a', 'Pro'])}"
-    elif brand == "Poco":
-        model = f"{model_prefix}{random.choice(['X3', 'F1', 'M3', 'F3', 'X4', 'M4', 'F5', 'X5', 'C40'])}"
-    elif brand == "Redmi":
-        model = f"{model_prefix}{random.choice(['8', '9', '10', '11', '12', '13'])} Pro"
-    elif brand in ["Dell", "Toshiba", "Alienware"]:
-        model = f"{model_prefix}{random.randint(1000, 99999)}"
-    elif brand == "Nothing":
-        model = f"{model_prefix}{random.choice(['1', '2'])}"
-    elif brand == "Essential":
-        model = f"{model_prefix}1"
-    elif brand == "Apple":
-        model = f"{model_prefix}{random.choice(['6', '6s', '7', '8', 'X', 'XR', 'XS', '11', '12', '13', '14', '15', 'SE', 'Plus', 'Mini', 'Pro'])}"
-    else:
-        # Default case to ensure `model` is always defined
-        model = f"{model_prefix}{random.randint(100, 9999)}"
-
-    fbav = f"{random.randint(100, 999)}.0.0.{random.randint(10, 99)}.{random.randint(100, 999)}"  # App version
-    fbbv = random.randint(100000000, 999999999)  # Build version
-    fbdm_width = random.choice([720, 1080, 1280, 1440, 1920])
-    fbdm_height = int(fbdm_width * (16 / 9))  # Aspect ratio
-    fbdm_density = round(random.uniform(2.0, 4.5), 1)  # Screen density
-    fbca = random.choice(fbca_options)  # CPU architecture
-    fbpn = random.choice(fbpn_options)  # Package name
-
-    ua = (
-        f"Dalvik/2.1.0 (Linux; U; Android {random.randint(6, 15)}; "
-        f"{brand} {model}) "
-        f"[FBAN/FB4A;FBAV/{fbav};FBBV/{fbbv};FBDM/{{density={fbdm_density},width={fbdm_width},height={fbdm_height}}};"
-        f"FBLC/en_US;FBPN/{fbpn};FBOP/19;FBCA/{fbca}]"
-    )
-
+    ua = f"Dalvik/2.1.0 (Linux; U; Android {android_version}; {model} Build/{manufacturer}) [FBAN/FB4A;FBAV/{fb_version};FBBV/{fbbv};FBDM/{{density=2.0,width=1080,height=1920}};FBLC/en_US;FBOP/1;FBCA/{fbca}]"
+    
     return ua
-
+    
 def cuser(user, passw, user_choice):
     accessToken = '350685531728|62f8ce9f74b12f84c123cc23437a4a32'
     data = {
